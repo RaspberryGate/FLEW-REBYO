@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>FlashForge — ECE &amp; ECT Board Exam Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    .perspective { perspective: 1200px; }
+    .preserve-3d { transform-style: preserve-3d; transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1); }
+    .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+    .rotate-y-180 { transform: rotateY(180deg); }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+  <!-- Toast Banner -->
+  <div id="toastBanner" class="fixed top-4 right-4 z-[60] hidden px-4 py-3 rounded-xl bg-emerald-600 text-white text-xs sm:text-sm font-semibold shadow-lg transition"></div>
+
+  <!-- Top Navbar -->
+  <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800" title="Folders & Decks">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <div class="truncate">
+          <h1 class="font-bold text-base sm:text-lg leading-tight tracking-tight truncate">FlashForge</h1>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">ECE &amp; ECT Board Exam Studio</p>
+        </div>
+      </div>
+
+      <!-- Mode Switcher -->
+      <nav class="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/70 dark:border-slate-700/70">
+        <button data-mode="flashcards" class="mode-btn px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition">Flashcards</button>
+        <button data-mode="mcq" class="mode-btn px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition">Board MCQ</button>
+        <button data-mode="cards" class="mode-btn px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition">Cards</button>
+      </nav>
+
+      <!-- Right Actions -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <div class="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200/70 dark:border-amber-800/50 text-xs font-semibold text-amber-700 dark:text-amber-300">
+          <span>Streak: <span id="streakCount">1</span>d</span>
+          <span class="text-slate-300 dark:text-slate-700">|</span>
+          <span class="text-emerald-600 dark:text-emerald-400"><span id="todayCount">0</span> today</span>
+        </div>
+        <button id="openBulkBtnTop" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/70 dark:text-indigo-300 dark:hover:bg-indigo-900/70 border border-indigo-200/70 dark:border-indigo-800/60 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <span>JSON Import</span>
+        </button>
+        <button id="openSyncBtn" class="p-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition" title="Sync & Backup">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+          <span class="hidden sm:inline">Sync</span>
+        </button>
+        <button id="themeToggleBtn" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Toggle Dark Mode">
+          <svg class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <div class="flex-1 max-w-7xl w-full mx-auto flex relative">
+    <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/50 z-30 hidden lg:hidden"></div>
+
+    <!-- Left Sidebar: User Folders & Study Decks -->
+    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-76 sm:w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col">
+      <div class="p-4 border-b border-slate-200 dark:border-slate-800 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Folders &amp; Decks</p>
+            <p id="globalMasteryText" class="text-xs font-medium text-slate-600 dark:text-slate-300 mt-0.5">0 / 0 Mastered</p>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button id="newFolderBtn" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition flex items-center gap-1" title="Create New Folder">
+              <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+              <span>+ Folder</span>
+            </button>
+            <button id="newDeckBtn" class="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition">+ Deck</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="deckList" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
+
+      <div class="p-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
+        <button id="openBulkBtnSide" class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold flex items-center justify-center gap-2 transition">
+          <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <span>Bulk Import (JSON)</span>
+        </button>
+        <button id="openShortcutsBtn" class="w-full py-1.5 px-3 rounded-lg text-[11px] text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 text-center">
+          Keyboard Shortcuts (?)
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 p-4 sm:p-6 pb-24 lg:pb-8 min-w-0">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span id="activeFolderBadge" class="hidden px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60"></span>
+            <div class="flex items-center gap-2 min-w-0">
+              <span id="activeDeckDot" class="w-3 h-3 rounded-full bg-indigo-500 shrink-0"></span>
+              <h2 id="activeDeckTitle" class="text-xl sm:text-2xl font-bold tracking-tight truncate">Deck Title</h2>
+              <button id="renameDeckBtn" class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" title="Rename Deck">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 mt-1">
+            <p id="activeDeckMeta" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">0 cards in deck</p>
+            <span class="text-slate-300 dark:text-slate-700">&bull;</span>
+            <label class="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <span>Folder:</span>
+              <select id="activeDeckFolderSelect" class="px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none"></select>
+            </label>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="openBulkBtnMain" class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs sm:text-sm font-semibold transition">
+            Import JSON
+          </button>
+          <button id="addCardBtn" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition">
+            + Add Card
+          </button>
+        </div>
+      </div>
+
+      <!-- VIEW 1: FLASHCARDS -->
+      <section id="flashcardsView" class="space-y-4">
+        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+          <span id="fcProgressText">Card 1 of 1</span>
+          <div class="flex items-center gap-3">
+            <button id="fcShuffleBtn" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium">Shuffle</button>
+            <button id="fcResetBtn" class="hover:text-rose-600 dark:hover:text-rose-400 font-medium">Reset Mastery</button>
+          </div>
+        </div>
+
+        <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div id="fcProgressBar" class="h-full bg-indigo-600 transition-all duration-300" style="width: 0%"></div>
+        </div>
+
+        <div id="fcEmptyState" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-10 text-center">
+          <p class="text-base font-semibold mb-1">No cards in this deck yet</p>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Import a JSON batch from Claude or add cards manually.</p>
+          <button onclick="openBulkModal()" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold">Import JSON Questions</button>
+        </div>
+
+        <div id="fcStage" class="perspective max-w-3xl mx-auto">
+          <div id="flashcardEl" class="relative w-full min-h-[320px] sm:min-h-[370px] cursor-pointer preserve-3d select-none">
+            <div class="absolute inset-0 backface-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8 flex flex-col justify-between">
+              <div class="flex items-center justify-between gap-2">
+                <span id="fcTagFront" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">Topic</span>
+                <span id="fcStatusBadge" class="text-xs font-medium text-slate-400">New</span>
+              </div>
+              <div class="my-auto py-4 text-center">
+                <p id="fcQuestionText" class="text-lg sm:text-2xl font-semibold leading-relaxed"></p>
+              </div>
+              <div class="text-center text-xs text-slate-400">
+                Tap card or press <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono">Space</kbd> to flip &bull; Swipe on mobile
+              </div>
+            </div>
+
+            <div class="absolute inset-0 backface-hidden rotate-y-180 bg-white dark:bg-slate-900 rounded-2xl border-2 border-indigo-500/40 shadow-sm p-6 sm:p-8 flex flex-col justify-between overflow-y-auto">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Answer &amp; Solution</span>
+                <span id="fcTagBack" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Topic</span>
+              </div>
+              <div class="my-auto py-3 space-y-3">
+                <p id="fcAnswerText" class="text-lg sm:text-xl font-bold text-emerald-600 dark:text-emerald-400 text-center"></p>
+                <div id="fcFormulaBox" class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed"></div>
+              </div>
+              <div class="text-center text-xs text-slate-400">Rate recall below to schedule next review</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="fcControls" class="max-w-3xl mx-auto grid grid-cols-4 gap-2 sm:gap-3 pt-1">
+          <button data-rate="1" class="rate-btn py-2.5 sm:py-3 px-2 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300 text-xs sm:text-sm font-semibold transition">1 &bull; Again</button>
+          <button data-rate="2" class="rate-btn py-2.5 sm:py-3 px-2 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/60 text-amber-700 dark:text-amber-300 text-xs sm:text-sm font-semibold transition">2 &bull; Hard</button>
+          <button data-rate="3" class="rate-btn py-2.5 sm:py-3 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm font-semibold transition">3 &bull; Good</button>
+          <button data-rate="4" class="rate-btn py-2.5 sm:py-3 px-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 text-xs sm:text-sm font-semibold transition">4 &bull; Easy</button>
+        </div>
+      </section>
+
+      <!-- VIEW 2: BOARD MCQ -->
+      <section id="mcqView" class="hidden space-y-4 max-w-3xl mx-auto">
+        <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+            <button id="mcqPracticeTab" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition">Practice (Instant)</button>
+            <button id="mcqExamTab" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition">Timed Mock Exam</button>
+          </div>
+
+          <div id="examSetupControls" class="hidden flex items-center gap-2">
+            <select id="examCountSelect" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <option value="10">10 Items (15m)</option>
+              <option value="25">25 Items (37m)</option>
+              <option value="50">50 Items (75m)</option>
+              <option value="all">All Items</option>
+            </select>
+            <button id="startExamBtn" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold">Start Exam</button>
+          </div>
+
+          <div id="examLiveStatus" class="hidden flex items-center gap-3 text-xs font-bold">
+            <span class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-mono" id="examTimerText">15:00</span>
+            <button id="finishExamBtn" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold">Submit Exam</button>
+          </div>
+        </div>
+
+        <div id="mcqEmptyBox" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 text-center">
+          <p class="text-sm text-slate-500">No questions in this deck yet. Import JSON questions to begin.</p>
+        </div>
+
+        <div id="mcqCardContainer" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-7 space-y-5 shadow-sm">
+          <div class="flex items-center justify-between gap-2 text-xs">
+            <span id="mcqCounterBadge" class="font-bold text-indigo-600 dark:text-indigo-400">Question 1 of 6</span>
+            <div class="flex items-center gap-2">
+              <span id="mcqTopicBadge" class="px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">Topic</span>
+              <button id="mcqFlagBtn" class="hidden px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700 text-slate-500 hover:text-amber-600">Flag</button>
+            </div>
+          </div>
+
+          <p id="mcqQuestionText" class="text-base sm:text-xl font-semibold leading-relaxed"></p>
+          <div id="mcqChoicesList" class="space-y-2.5"></div>
+
+          <div id="mcqFeedbackBox" class="hidden p-4 rounded-xl border text-xs sm:text-sm space-y-1.5">
+            <p id="mcqFeedbackTitle" class="font-bold"></p>
+            <p id="mcqSolutionText" class="text-slate-700 dark:text-slate-200 leading-relaxed"></p>
+          </div>
+
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+            <button id="mcqPrevBtn" class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800">Previous</button>
+            <span class="text-[11px] text-slate-400 hidden sm:inline">Keys: A, B, C, D to answer &bull; Enter for Next</span>
+            <button id="mcqNextBtn" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold">Next Question</button>
+          </div>
+        </div>
+
+        <div id="examNavigatorBox" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5">Question Navigator</p>
+          <div id="examNavGrid" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <div id="examReportScreen" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 space-y-6">
+          <div class="text-center space-y-2">
+            <span id="reportBadge" class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">PASSED (PRC 70% STANDARD)</span>
+            <h3 id="reportScoreText" class="text-3xl sm:text-4xl font-extrabold">85.0%</h3>
+            <p id="reportDetailText" class="text-sm text-slate-500 dark:text-slate-400">17 out of 20 correct</p>
+          </div>
+          <div class="flex justify-center gap-3">
+            <button id="retakeExamBtn" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs sm:text-sm font-semibold">Take Another Mock Exam</button>
+          </div>
+          <div class="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <h4 class="text-sm font-bold">Item-by-Item Solution Review</h4>
+            <div id="reportReviewList" class="space-y-3"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: CARDS MANAGER -->
+      <section id="cardsView" class="hidden space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <input id="cardSearchInput" type="text" placeholder="Search questions, answers, or tags..." class="flex-1 min-w-[220px] px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          <button onclick="openBulkModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 text-white text-xs sm:text-sm font-semibold">Bulk Import JSON</button>
+        </div>
+        <div id="cardsManagerList" class="space-y-2.5"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-800 grid grid-cols-4 h-14">
+    <button id="mobDecksBtn" class="flex flex-col items-center justify-center text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+      <span>Folders</span>
+    </button>
+    <button data-mode="mcq" class="mode-btn-mob flex flex-col items-center justify-center text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span>Board MCQ</span>
+    </button>
+    <button onclick="openBulkModal()" class="flex flex-col items-center justify-center text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">
+      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+      <span>JSON Import</span>
+    </button>
+    <button onclick="openSyncModal()" class="flex flex-col items-center justify-center text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+      <span>Sync</span>
+    </button>
+  </nav>
+
+  <!-- MODAL 1: SMART JSON BULK IMPORT -->
+  <div id="bulkModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl">
+      <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div>
+          <h3 class="text-base sm:text-lg font-bold">Bulk Import Questions (JSON)</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Auto-detects any JSON structure from Claude or a .json file</p>
+        </div>
+        <button onclick="closeModal('bulkModal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">&times;</button>
+      </div>
+
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1">Target Deck</label>
+            <select id="bulkDeckSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm"></select>
+          </div>
+          <div id="bulkFolderWrap">
+            <label class="block text-xs font-semibold mb-1">Folder (for New Deck)</label>
+            <select id="bulkFolderSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm"></select>
+          </div>
+          <div id="bulkNewDeckWrap" class="hidden sm:col-span-2">
+            <label class="block text-xs font-semibold mb-1">New Deck Name</label>
+            <input id="bulkNewDeckName" type="text" placeholder="e.g., Week 1 — Vector Calculus" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm" />
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <label class="cursor-pointer px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold inline-flex items-center gap-1.5 transition">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+            <span>Upload .json File</span>
+            <input id="bulkJsonFileInput" type="file" accept=".json,application/json" class="hidden" />
+          </label>
+          <button id="insertSampleJsonBtn" type="button" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/70 dark:hover:bg-indigo-900/70 text-indigo-700 dark:text-indigo-300 text-xs font-semibold transition">
+            Insert Sample JSON
+          </button>
+          <button id="copySchemaBtn" type="button" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition">
+            Copy Schema for Claude
+          </button>
+        </div>
+
+        <div>
+          <textarea id="bulkJsonInput" rows="10" placeholder='Paste JSON array from Claude here...' class="w-full p-3 rounded-xl bg-slate-950 text-emerald-300 font-mono text-xs border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+
+        <div id="bulkValidationStatus" class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300">
+          Paste valid JSON above to validate questions before importing.
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
+        <button onclick="closeModal('bulkModal')" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold">Cancel</button>
+        <button id="confirmBulkImportBtn" disabled class="px-4 py-2 rounded-xl bg-indigo-600 disabled:opacity-40 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold transition">Import JSON Questions</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: ADD / EDIT SINGLE CARD -->
+  <div id="cardModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 id="cardModalTitle" class="text-base sm:text-lg font-bold">Add Question Card</h3>
+        <button onclick="closeModal('cardModal')" class="p-1 text-slate-400">&times;</button>
+      </div>
+      <input type="hidden" id="editCardId" />
+      <div class="space-y-3 text-xs sm:text-sm">
+        <div>
+          <label class="block font-semibold mb-1">Question</label>
+          <textarea id="cardQuestionInput" rows="2" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"></textarea>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1 text-emerald-600 dark:text-emerald-400">Correct Answer</label>
+          <input id="cardAnswerInput" type="text" class="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1">Distractor 1</label>
+            <input id="cardWrong1Input" type="text" class="w-full p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1">Distractor 2</label>
+            <input id="cardWrong2Input" type="text" class="w-full p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1">Distractor 3</label>
+            <input id="cardWrong3Input" type="text" class="w-full p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div class="sm:col-span-2">
+            <label class="block font-semibold mb-1">Formula / Solution</label>
+            <input id="cardFormulaInput" type="text" class="w-full p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" />
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Topic Tag</label>
+            <input id="cardTagInput" type="text" class="w-full p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" />
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeModal('cardModal')" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold">Cancel</button>
+        <button id="saveCardBtn" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold">Save Card</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: SYNC & BACKUP -->
+  <div id="syncModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base sm:text-lg font-bold">Phone &harr; Laptop Sync &amp; Backup</h3>
+        <button onclick="closeModal('syncModal')" class="p-1 text-slate-400">&times;</button>
+      </div>
+      <div class="space-y-3 text-xs sm:text-sm">
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2">
+          <p class="font-semibold">1. Full JSON Backup File (Includes Folders &amp; Decks)</p>
+          <div class="flex flex-wrap gap-2 pt-1">
+            <button id="downloadBackupBtn" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold">Download .json Backup</button>
+            <label class="cursor-pointer px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-xs font-semibold">
+              Restore .json Backup
+              <input id="restoreBackupInput" type="file" accept=".json,application/json" class="hidden" />
+            </label>
+          </div>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2">
+          <p class="font-semibold">2. Quick Transfer Code</p>
+          <textarea id="syncCodeBox" rows="3" class="w-full p-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono text-[11px]"></textarea>
+          <div class="flex gap-2">
+            <button id="copySyncCodeBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 dark:bg-slate-700 text-white text-xs font-semibold">Copy Code</button>
+            <button id="loadSyncCodeBtn" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold">Load Pasted Code</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: SHORTCUTS -->
+  <div id="shortcutsModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-sm w-full p-5 space-y-3 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-base">Keyboard Shortcuts</h3>
+        <button onclick="closeModal('shortcutsModal')" class="text-slate-400">&times;</button>
+      </div>
+      <div class="space-y-2 text-xs">
+        <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800"><span>Flip Flashcard</span><kbd class="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 rounded">Space / Up / Down</kbd></div>
+        <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800"><span>Rate Card</span><kbd class="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 rounded">1, 2, 3, 4</kbd></div>
+        <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800"><span>Pick MCQ Choice</span><kbd class="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 rounded">A, B, C, D or 1-4</kbd></div>
+        <div class="flex justify-between py-1"><span>Next MCQ</span><kbd class="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 rounded">Enter / Right Arrow</kbd></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'flashforge_board_studio_v5';
+
+    const DEFAULT_DECKS = [
+      {
+        id: 'deck-ece-core',
+        folderId: '',
+        title: 'Sample — ECE Electronics & Comms',
+        color: '#4f46e5',
+        cards: [
+          {
+            id: 'ece-1',
+            question: 'What is the thermal voltage Vt of a silicon diode at room temperature (300 K)?',
+            answer: '25.85 mV',
+            choices: ['25.85 mV', '26.0 V', '0.70 V', '13.8 mV'],
+            formula: 'Vt = kT / q = (1.38e-23 * 300) / 1.6e-19 = 25.85 mV',
+            tag: 'Electronics',
+            mastery: 0
+          },
+          {
+            id: 'ece-2',
+            question: 'An AM transmitter has an unmodulated carrier power of 100 W and is modulated at m = 0.8. What is the total transmitted power?',
+            answer: '132 W',
+            choices: ['132 W', '180 W', '164 W', '108 W'],
+            formula: 'Pt = Pc * (1 + m^2 / 2) = 100 * (1 + 0.64 / 2) = 132 W',
+            tag: 'Comms',
+            mastery: 0
+          }
+        ]
+      },
+      {
+        id: 'deck-ect-core',
+        folderId: '',
+        title: 'Sample — ECT Laws & PEC',
+        color: '#059669',
+        cards: [
+          {
+            id: 'ect-1',
+            question: 'Under RA 9292, what is the minimum passing rating required in the Electronics Technician (ECT) licensure examination?',
+            answer: '70%',
+            choices: ['70%', '75%', '65%', '60%'],
+            formula: 'RA 9292 Sec. 16: Minimum rating of 70% to pass the ECT board exam.',
+            tag: 'ECE Law',
+            mastery: 0
+          },
+          {
+            id: 'ect-2',
+            question: 'A 4-band carbon resistor has color bands Yellow, Violet, Red, and Gold. What is its nominal resistance and tolerance?',
+            answer: '4.7 kOhm +/- 5%',
+            choices: ['4.7 kOhm +/- 5%', '47 kOhm +/- 5%', '4.7 kOhm +/- 10%', '470 Ohm +/- 5%'],
+            formula: 'Yellow=4, Violet=7, Red=x100, Gold=+/-5% -> 4,700 Ohms +/- 5%',
+            tag: 'Basic Electronics',
+            mastery: 0
+          }
+        ]
+      }
+    ];
+
+    let state = {
+      folders: [],
+      decks: [],
+      activeDeckId: '',
+      mode: 'mcq',
+      fcIndex: 0,
+      fcFlipped: false,
+      todayCount: 0,
+      streak: 1,
+      darkMode: false,
+      mcqSubMode: 'practice',
+      mcqIndex: 0,
+      mcqOrder: [],
+      mcqChoicesMap: {},
+      mcqAnswers: {},
+      mcqFlags: {},
+      examActive: false,
+      examSecondsLeft: 900,
+      examTimerHandle: null
+    };
+
+    const SAMPLE_JSON_OBJ = [
+      {
+        question: 'What is the thermal voltage Vt at room temperature (300 K)?',
+        answer: '25.85 mV',
+        choices: ['25.85 mV', '26.0 V', '0.70 V', '13.8 mV'],
+        solution: 'Vt = kT/q = (1.38e-23 * 300) / 1.6e-19 = 25.85 mV',
+        tag: 'Electronics'
+      }
+    ];
+
+    const CLAUDE_PROMPT_SCHEMA = [
+      'Convert the attached/pasted ECE/ECT board exam reviewer notes into a valid JSON array.',
+      'Output ONLY valid JSON (no intro or outro text) following this exact format:',
+      JSON.stringify(SAMPLE_JSON_OBJ, null, 2),
+      'Include 4 distinct choices per question (the correct answer plus 3 realistic PRC board-exam distractors) and a concise step-by-step solution.'
+    ].join('\n\n');
+
+    function showToast(msg) {
+      const el = document.getElementById('toastBanner');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(el._timer);
+      el._timer = setTimeout(() => el.classList.add('hidden'), 3500);
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('flashforge_board_studio_v4');
+        if (raw) {
+          const saved = JSON.parse(raw);
+          if (Array.isArray(saved.decks) && saved.decks.length > 0) {
+            state.folders = Array.isArray(saved.folders) ? saved.folders : [];
+            state.decks = saved.decks.map(d => ({ ...d, folderId: d.folderId || '' }));
+            state.activeDeckId = saved.activeDeckId || saved.decks[0].id;
+            state.todayCount = saved.todayCount || 0;
+            state.streak = saved.streak || 1;
+            state.darkMode = !!saved.darkMode;
+            return;
+          }
+        }
+      } catch (e) {}
+      state.folders = [];
+      state.decks = JSON.parse(JSON.stringify(DEFAULT_DECKS));
+      state.activeDeckId = state.decks[0].id;
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          folders: state.folders,
+          decks: state.decks,
+          activeDeckId: state.activeDeckId,
+          todayCount: state.todayCount,
+          streak: state.streak,
+          darkMode: state.darkMode
+        }));
+      } catch (e) {}
+    }
+
+    function getActiveDeck() {
+      return state.decks.find(d => d.id === state.activeDeckId) || state.decks[0];
+    }
+
+    function applyTheme() {
+      document.documentElement.classList.toggle('dark', state.darkMode);
+    }
+
+    function createDeckRowEl(deck) {
+      const count = deck.cards.length;
+      const mastered = deck.cards.filter(c => (c.mastery || 0) >= 3).length;
+      const pct = count ? Math.round((mastered / count) * 100) : 0;
+      const isActive = deck.id === state.activeDeckId;
+
+      const row = document.createElement('div');
+      row.className = 'group flex items-center justify-between p-2 rounded-xl cursor-pointer transition ' +
+        (isActive
+          ? 'bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 font-semibold'
+          : 'hover:bg-slate-100 dark:hover:bg-slate-800/70 text-slate-700 dark:text-slate-300');
+
+      row.innerHTML = `
+        <div class="min-w-0 flex-1 pr-1">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full shrink-0" style="background:${deck.color || '#4f46e5'}"></span>
+            <span class="text-xs truncate">${escapeHtml(deck.title)}</span>
+          </div>
+          <div class="text-[10px] text-slate-400 mt-0.5 pl-4">${count} cards &bull; ${pct}% mastered</div>
+        </div>
+        ${state.decks.length > 1 ? `<button data-del-deck="${deck.id}" class="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-500 text-xs" title="Delete Deck">&times;</button>` : ''}
+      `;
+
+      row.addEventListener('click', (e) => {
+        if (e.target.dataset.delDeck) {
+          e.stopPropagation();
+          if (confirm('Delete deck "' + deck.title + '"?')) {
+            state.decks = state.decks.filter(d => d.id !== deck.id);
+            if (state.activeDeckId === deck.id) state.activeDeckId = state.decks[0].id;
+            resetSessionPointers();
+            saveState();
+            renderAll();
+          }
+          return;
+        }
+        state.activeDeckId = deck.id;
+        resetSessionPointers();
+        saveState();
+        closeMobileSidebar();
+        renderAll();
+      });
+
+      return row;
+    }
+
+    function renderSidebar() {
+      const list = document.getElementById('deckList');
+      list.innerHTML = '';
+      let totalCards = 0;
+      let totalMastered = 0;
+
+      state.decks.forEach(deck => {
+        totalCards += deck.cards.length;
+        totalMastered += deck.cards.filter(c => (c.mastery || 0) >= 3).length;
+      });
+
+      // Render User-Created Folders first
+      state.folders.forEach(folder => {
+        const folderDecks = state.decks.filter(d => d.folderId === folder.id);
+        const folderWrap = document.createElement('div');
+        folderWrap.className = 'rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 overflow-hidden';
+
+        const header = document.createElement('div');
+        header.className = 'group flex items-center justify-between px-2.5 py-2 cursor-pointer hover:bg-slate-100/80 dark:hover:bg-slate-800/60 transition';
+        header.innerHTML = `
+          <div class="flex items-center gap-1.5 min-w-0 flex-1">
+            <svg class="w-3.5 h-3.5 text-slate-400 transition-transform ${folder.collapsed ? '-rotate-90' : ''}" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
+            <span class="text-xs font-bold truncate">${escapeHtml(folder.name)}</span>
+            <span class="text-[10px] text-slate-400 font-medium">(${folderDecks.length})</span>
+          </div>
+          <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
+            <button data-add-in-folder="${folder.id}" class="p-1 text-slate-400 hover:text-indigo-600 text-xs font-bold" title="New Deck in Folder">+</button>
+            <button data-ren-folder="${folder.id}" class="p-1 text-slate-400 hover:text-slate-600 text-[11px]" title="Rename Folder">&#9998;</button>
+            <button data-del-folder="${folder.id}" class="p-1 text-slate-400 hover:text-rose-500 text-xs" title="Delete Folder">&times;</button>
+          </div>
+        `;
+
+        header.addEventListener('click', (e) => {
+          if (e.target.dataset.addInFolder) {
+            e.stopPropagation();
+            promptCreateDeck(folder.id);
+            return;
+          }
+          if (e.target.dataset.renFolder) {
+            e.stopPropagation();
+            const newName = prompt('Rename folder:', folder.name);
+            if (newName && newName.trim()) {
+              folder.name = newName.trim();
+              saveState();
+              renderAll();
+            }
+            return;
+          }
+          if (e.target.dataset.delFolder) {
+            e.stopPropagation();
+            if (confirm(`Delete folder "${folder.name}"? (Decks inside will be moved to Unfiled, not deleted.)`)) {
+              state.decks.forEach(d => { if (d.folderId === folder.id) d.folderId = ''; });
+              state.folders = state.folders.filter(f => f.id !== folder.id);
+              saveState();
+              renderAll();
+            }
+            return;
+          }
+          folder.collapsed = !folder.collapsed;
+          saveState();
+          renderSidebar();
+        });
+
+        folderWrap.appendChild(header);
+
+        if (!folder.collapsed) {
+          const body = document.createElement('div');
+          body.className = 'px-2 pb-2 pt-0.5 space-y-1 border-t border-slate-200/50 dark:border-slate-800/70';
+          if (folderDecks.length === 0) {
+            body.innerHTML = `<p class="text-[11px] text-slate-400 py-1.5 px-2 italic">Empty folder — click + to add deck</p>`;
+          } else {
+            folderDecks.forEach(d => body.appendChild(createDeckRowEl(d)));
+          }
+          folderWrap.appendChild(body);
+        }
+
+        list.appendChild(folderWrap);
+      });
+
+      // Render Unfiled Decks
+      const unfiledDecks = state.decks.filter(d => !d.folderId || !state.folders.some(f => f.id === d.folderId));
+      if (unfiledDecks.length > 0) {
+        if (state.folders.length > 0) {
+          const lbl = document.createElement('p');
+          lbl.className = 'text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 pt-2';
+          lbl.textContent = 'Unfiled Decks';
+          list.appendChild(lbl);
+        }
+        unfiledDecks.forEach(d => list.appendChild(createDeckRowEl(d)));
+      }
+
+      document.getElementById('globalMasteryText').textContent = `${totalMastered} / ${totalCards} Mastered`;
+      document.getElementById('streakCount').textContent = state.streak;
+      document.getElementById('todayCount').textContent = state.todayCount;
+    }
+
+    function promptCreateDeck(defaultFolderId = '') {
+      const name = prompt('Enter new deck name:');
+      if (!name || !name.trim()) return;
+      const colors = ['#4f46e5', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0284c7'];
+      const id = 'deck-' + Date.now();
+      state.decks.push({
+        id,
+        folderId: defaultFolderId,
+        title: name.trim(),
+        color: colors[state.decks.length % colors.length],
+        cards: []
+      });
+      state.activeDeckId = id;
+      resetSessionPointers();
+      saveState();
+      renderAll();
+    }
+
+    function resetSessionPointers(startIdx = 0) {
+      state.fcIndex = startIdx;
+      state.fcFlipped = false;
+      stopExamTimer();
+      state.examActive = false;
+      state.mcqSubMode = 'practice';
+      document.getElementById('examReportScreen').classList.add('hidden');
+      document.getElementById('mcqCardContainer').classList.remove('hidden');
+      initMcqSession(false);
+      if (startIdx > 0 && startIdx < state.mcqOrder.length) {
+        state.mcqIndex = startIdx;
+      }
+    }
+
+    function renderHeader() {
+      const deck = getActiveDeck();
+      document.getElementById('activeDeckTitle').textContent = deck.title;
+      document.getElementById('activeDeckDot').style.background = deck.color || '#4f46e5';
+      const mastered = deck.cards.filter(c => (c.mastery || 0) >= 3).length;
+      document.getElementById('activeDeckMeta').textContent = `${deck.cards.length} cards in deck \u2022 ${mastered} mastered`;
+
+      // Folder Badge & Move-to-Folder Dropdown
+      const folder = state.folders.find(f => f.id === deck.folderId);
+      const folderBadge = document.getElementById('activeFolderBadge');
+      if (folder) {
+        folderBadge.textContent = folder.name;
+        folderBadge.classList.remove('hidden');
+      } else {
+        folderBadge.classList.add('hidden');
+      }
+
+      const folderSelect = document.getElementById('activeDeckFolderSelect');
+      folderSelect.innerHTML = '<option value="">No Folder (Unfiled)</option>';
+      state.folders.forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f.id;
+        opt.textContent = f.name;
+        if (f.id === deck.folderId) opt.selected = true;
+        folderSelect.appendChild(opt);
+      });
+
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        const active = btn.dataset.mode === state.mode;
+        btn.className = 'mode-btn px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition ' +
+          (active
+            ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
+            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white');
+      });
+
+      document.getElementById('flashcardsView').classList.toggle('hidden', state.mode !== 'flashcards');
+      document.getElementById('mcqView').classList.toggle('hidden', state.mode !== 'mcq');
+      document.getElementById('cardsView').classList.toggle('hidden', state.mode !== 'cards');
+    }
+
+    function renderFlashcards() {
+      const deck = getActiveDeck();
+      const cards = deck.cards;
+      const empty = document.getElementById('fcEmptyState');
+      const stage = document.getElementById('fcStage');
+      const controls = document.getElementById('fcControls');
+
+      if (!cards.length) {
+        empty.classList.remove('hidden');
+        stage.classList.add('hidden');
+        controls.classList.add('hidden');
+        document.getElementById('fcProgressText').textContent = '0 cards';
+        document.getElementById('fcProgressBar').style.width = '0%';
+        return;
+      }
+
+      empty.classList.add('hidden');
+      stage.classList.remove('hidden');
+      controls.classList.remove('hidden');
+
+      if (state.fcIndex >= cards.length) state.fcIndex = 0;
+      const card = cards[state.fcIndex];
+
+      document.getElementById('fcProgressText').textContent = `Card ${state.fcIndex + 1} of ${cards.length}`;
+      document.getElementById('fcProgressBar').style.width = `${Math.round(((state.fcIndex + 1) / cards.length) * 100)}%`;
+
+      document.getElementById('fcTagFront').textContent = card.tag || 'General';
+      document.getElementById('fcTagBack').textContent = card.tag || 'General';
+      document.getElementById('fcStatusBadge').textContent = (card.mastery || 0) >= 3 ? 'Mastered' : (card.mastery > 0 ? 'Learning' : 'New');
+      document.getElementById('fcQuestionText').textContent = card.question;
+      document.getElementById('fcAnswerText').textContent = card.answer;
+
+      const formulaBox = document.getElementById('fcFormulaBox');
+      if (card.formula) {
+        formulaBox.textContent = card.formula;
+        formulaBox.classList.remove('hidden');
+      } else {
+        formulaBox.classList.add('hidden');
+      }
+
+      document.getElementById('flashcardEl').classList.toggle('rotate-y-180', state.fcFlipped);
+    }
+
+    function initMcqSession(shuffleAll, limitCount) {
+      const deck = getActiveDeck();
+      let indices = deck.cards.map((_, i) => i);
+      if (shuffleAll) {
+        for (let i = indices.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+      }
+      if (limitCount && limitCount !== 'all') {
+        indices = indices.slice(0, Number(limitCount));
+      }
+      state.mcqOrder = indices;
+      state.mcqIndex = 0;
+      state.mcqAnswers = {};
+      state.mcqFlags = {};
+      state.mcqChoicesMap = {};
+
+      indices.forEach(idx => {
+        const card = deck.cards[idx];
+        state.mcqChoicesMap[idx] = buildFourChoices(card, deck.cards);
+      });
+    }
+
+    function buildFourChoices(card, allCards) {
+      const set = new Set();
+      if (card.answer) set.add(card.answer.trim());
+      if (Array.isArray(card.choices)) {
+        card.choices.forEach(c => { if (c && String(c).trim()) set.add(String(c).trim()); });
+      }
+      const pool = allCards.map(c => c.answer).filter(a => a && !set.has(a.trim()));
+      while (set.size < 4 && pool.length > 0) {
+        const r = Math.floor(Math.random() * pool.length);
+        set.add(pool.splice(r, 1)[0].trim());
+      }
+      const fallbacks = ['None of the above', 'Cannot be determined', 'Zero', 'Infinity'];
+      for (const fb of fallbacks) {
+        if (set.size >= 4) break;
+        set.add(fb);
+      }
+      const arr = Array.from(set).slice(0, 4);
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function renderMcq() {
+      const deck = getActiveDeck();
+      const practiceTab = document.getElementById('mcqPracticeTab');
+      const examTab = document.getElementById('mcqExamTab');
+      const isPractice = state.mcqSubMode === 'practice';
+
+      practiceTab.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition ' + (isPractice ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500');
+      examTab.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition ' + (!isPractice ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500');
+
+      document.getElementById('examSetupControls').classList.toggle('hidden', isPractice || state.examActive);
+      document.getElementById('examLiveStatus').classList.toggle('hidden', isPractice || !state.examActive);
+      document.getElementById('examNavigatorBox').classList.toggle('hidden', isPractice || !state.examActive);
+      document.getElementById('mcqFlagBtn').classList.toggle('hidden', isPractice || !state.examActive);
+
+      const emptyBox = document.getElementById('mcqEmptyBox');
+      const cardContainer = document.getElementById('mcqCardContainer');
+
+      if (!deck.cards.length) {
+        emptyBox.classList.remove('hidden');
+        cardContainer.classList.add('hidden');
+        return;
+      }
+
+      emptyBox.classList.add('hidden');
+      if (!document.getElementById('examReportScreen').classList.contains('hidden')) return;
+      cardContainer.classList.remove('hidden');
+
+      if (state.mcqOrder.length !== deck.cards.length && isPractice) {
+        initMcqSession(false);
+      }
+      if (state.mcqIndex >= state.mcqOrder.length) state.mcqIndex = 0;
+
+      const cardIdx = state.mcqOrder[state.mcqIndex];
+      const card = deck.cards[cardIdx];
+      const choices = state.mcqChoicesMap[cardIdx] || buildFourChoices(card, deck.cards);
+      const chosen = state.mcqAnswers[cardIdx];
+
+      document.getElementById('mcqCounterBadge').textContent = `Question ${state.mcqIndex + 1} of ${state.mcqOrder.length}`;
+      document.getElementById('mcqTopicBadge').textContent = card.tag || 'General';
+      document.getElementById('mcqQuestionText').textContent = card.question;
+
+      const flagBtn = document.getElementById('mcqFlagBtn');
+      flagBtn.textContent = state.mcqFlags[cardIdx] ? 'Flagged' : 'Flag';
+      flagBtn.className = 'px-2 py-0.5 rounded border text-xs font-semibold ' +
+        (state.mcqFlags[cardIdx] ? 'border-amber-400 bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300' : 'border-slate-300 dark:border-slate-700 text-slate-500');
+
+      const list = document.getElementById('mcqChoicesList');
+      list.innerHTML = '';
+      const letters = ['A', 'B', 'C', 'D'];
+
+      choices.forEach((choiceText, idx) => {
+        const btn = document.createElement('button');
+        const isSelected = chosen === choiceText;
+        const isCorrect = choiceText.trim().toLowerCase() === card.answer.trim().toLowerCase();
+
+        let style = 'border-slate-200 dark:border-slate-800 hover:border-indigo-400 bg-slate-50/60 dark:bg-slate-800/50';
+        if (isPractice && chosen !== undefined) {
+          if (isCorrect) style = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 font-semibold';
+          else if (isSelected) style = 'border-rose-500 bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200';
+        } else if (!isPractice && isSelected) {
+          style = 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-200 font-semibold';
+        }
+
+        btn.className = `w-full text-left p-3.5 rounded-xl border-2 transition flex items-start gap-3 text-xs sm:text-sm ${style}`;
+        btn.innerHTML = `
+          <span class="w-6 h-6 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-xs font-bold shrink-0">${letters[idx]}</span>
+          <span class="pt-0.5 leading-snug">${escapeHtml(choiceText)}</span>
+        `;
+        btn.addEventListener('click', () => handleSelectMcq(choiceText));
+        list.appendChild(btn);
+      });
+
+      const fbBox = document.getElementById('mcqFeedbackBox');
+      if (isPractice && chosen !== undefined) {
+        const right = chosen.trim().toLowerCase() === card.answer.trim().toLowerCase();
+        fbBox.classList.remove('hidden');
+        fbBox.className = 'p-4 rounded-xl border text-xs sm:text-sm space-y-1 ' +
+          (right ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-200'
+                 : 'bg-rose-50/80 border-rose-200 text-rose-900 dark:bg-rose-950/40 dark:border-rose-800 dark:text-rose-200');
+        document.getElementById('mcqFeedbackTitle').textContent = right ? 'Correct!' : `Incorrect — Correct Answer: ${card.answer}`;
+        document.getElementById('mcqSolutionText').textContent = card.formula || '';
+      } else {
+        fbBox.classList.add('hidden');
+      }
+
+      if (!isPractice && state.examActive) {
+        const grid = document.getElementById('examNavGrid');
+        grid.innerHTML = '';
+        state.mcqOrder.forEach((cIdx, pos) => {
+          const b = document.createElement('button');
+          const answered = state.mcqAnswers[cIdx] !== undefined;
+          const flagged = !!state.mcqFlags[cIdx];
+          const current = pos === state.mcqIndex;
+          b.className = 'w-8 h-8 rounded-lg text-xs font-bold border transition ' +
+            (current ? 'ring-2 ring-indigo-500 ' : '') +
+            (flagged ? 'bg-amber-100 border-amber-400 text-amber-800 dark:bg-amber-950 dark:text-amber-200'
+              : answered ? 'bg-indigo-600 border-indigo-600 text-white'
+              : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700');
+          b.textContent = pos + 1;
+          b.onclick = () => { state.mcqIndex = pos; renderMcq(); };
+          grid.appendChild(b);
+        });
+      }
+    }
+
+    function handleSelectMcq(choiceText) {
+      const cardIdx = state.mcqOrder[state.mcqIndex];
+      if (state.mcqSubMode === 'practice' && state.mcqAnswers[cardIdx] !== undefined) return;
+      state.mcqAnswers[cardIdx] = choiceText;
+      state.todayCount++;
+      saveState();
+      renderSidebar();
+      renderMcq();
+    }
+
+    function startTimedExam() {
+      const deck = getActiveDeck();
+      if (!deck.cards.length) return;
+      const val = document.getElementById('examCountSelect').value;
+      initMcqSession(true, val);
+      state.examActive = true;
+      state.examSecondsLeft = state.mcqOrder.length * 90;
+      document.getElementById('examReportScreen').classList.add('hidden');
+      document.getElementById('mcqCardContainer').classList.remove('hidden');
+      updateExamTimerDisplay();
+      stopExamTimer();
+      state.examTimerHandle = setInterval(() => {
+        state.examSecondsLeft--;
+        updateExamTimerDisplay();
+        if (state.examSecondsLeft <= 0) finishTimedExam();
+      }, 1000);
+      renderMcq();
+    }
+
+    function stopExamTimer() {
+      if (state.examTimerHandle) {
+        clearInterval(state.examTimerHandle);
+        state.examTimerHandle = null;
+      }
+    }
+
+    function updateExamTimerDisplay() {
+      const mins = Math.max(0, Math.floor(state.examSecondsLeft / 60));
+      const secs = Math.max(0, state.examSecondsLeft % 60);
+      document.getElementById('examTimerText').textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function finishTimedExam() {
+      stopExamTimer();
+      state.examActive = false;
+      const deck = getActiveDeck();
+      let correct = 0;
+      const reviewList = document.getElementById('reportReviewList');
+      reviewList.innerHTML = '';
+
+      state.mcqOrder.forEach((cIdx, i) => {
+        const card = deck.cards[cIdx];
+        const userAns = state.mcqAnswers[cIdx];
+        const isRight = userAns && userAns.trim().toLowerCase() === card.answer.trim().toLowerCase();
+        if (isRight) correct++;
+
+        const item = document.createElement('div');
+        item.className = 'p-3.5 rounded-xl border text-xs space-y-1 ' +
+          (isRight ? 'border-emerald-200 bg-emerald-50/40 dark:border-emerald-900 dark:bg-emerald-950/20'
+                   : 'border-rose-200 bg-rose-50/40 dark:border-rose-900 dark:bg-rose-950/20');
+        item.innerHTML = `
+          <p class="font-bold">${i + 1}. ${escapeHtml(card.question)}</p>
+          <p>Your Answer: <span class="font-semibold">${escapeHtml(userAns || 'Unanswered')}</span> &bull; Correct: <span class="font-bold text-emerald-600 dark:text-emerald-400">${escapeHtml(card.answer)}</span></p>
+          ${card.formula ? `<p class="text-slate-500 dark:text-slate-400">${escapeHtml(card.formula)}</p>` : ''}
+        `;
+        reviewList.appendChild(item);
+      });
+
+      const total = state.mcqOrder.length;
+      const pct = total ? ((correct / total) * 100).toFixed(1) : '0.0';
+      const passed = Number(pct) >= 70;
+
+      const badge = document.getElementById('reportBadge');
+      badge.textContent = passed ? 'PASSED (PRC 70% STANDARD)' : 'BELOW 70% PASSING THRESHOLD';
+      badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ' +
+        (passed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300');
+
+      document.getElementById('reportScoreText').textContent = `${pct}%`;
+      document.getElementById('reportDetailText').textContent = `${correct} out of ${total} items correct`;
+
+      document.getElementById('mcqCardContainer').classList.add('hidden');
+      document.getElementById('examNavigatorBox').classList.add('hidden');
+      document.getElementById('examLiveStatus').classList.add('hidden');
+      document.getElementById('examReportScreen').classList.remove('hidden');
+    }
+
+    function renderCardsManager() {
+      const deck = getActiveDeck();
+      const query = document.getElementById('cardSearchInput').value.trim().toLowerCase();
+      const list = document.getElementById('cardsManagerList');
+      list.innerHTML = '';
+
+      const filtered = deck.cards.filter(c =>
+        !query ||
+        c.question.toLowerCase().includes(query) ||
+        c.answer.toLowerCase().includes(query) ||
+        (c.tag && c.tag.toLowerCase().includes(query))
+      );
+
+      if (!filtered.length) {
+        list.innerHTML = '<p class="text-center text-sm text-slate-500 py-8">No matching cards found.</p>';
+        return;
+      }
+
+      filtered.forEach(card => {
+        const row = document.createElement('div');
+        row.className = 'bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-start justify-between gap-3';
+        row.innerHTML = `
+          <div class="space-y-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-[11px] font-semibold">${escapeHtml(card.tag || 'General')}</span>
+              <span class="text-[11px] text-slate-400">${(card.choices && card.choices.length) || 1} choices</span>
+            </div>
+            <p class="text-sm font-semibold">${escapeHtml(card.question)}</p>
+            <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400">Answer: ${escapeHtml(card.answer)}</p>
+            ${card.formula ? `<p class="text-xs text-slate-500 dark:text-slate-400 truncate">${escapeHtml(card.formula)}</p>` : ''}
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button data-edit-card="${card.id}" class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800">Edit</button>
+            <button data-del-card="${card.id}" class="px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-900 text-rose-600 text-xs font-semibold hover:bg-rose-50 dark:hover:bg-rose-950">Del</button>
+          </div>
+        `;
+        row.querySelector('[data-edit-card]').onclick = () => openCardModal(card);
+        row.querySelector('[data-del-card]').onclick = () => {
+          deck.cards = deck.cards.filter(c => c.id !== card.id);
+          saveState();
+          renderAll();
+        };
+        list.appendChild(row);
+      });
+    }
+
+    // FLEXIBLE JSON BULK PARSER
+    let validatedImportCards = [];
+
+    function parseBulkJson(rawText) {
+      const trimmed = rawText.trim();
+      if (!trimmed) return { cards: [], error: null, isEmpty: true };
+
+      let candidate = trimmed;
+      const fenceStart = new RegExp('^\\x60{3}(?:json)?\\s*', 'i');
+      const fenceEnd = new RegExp('\\s*\\x60{3}$', 'i');
+      candidate = candidate.replace(fenceStart, '').replace(fenceEnd, '').trim();
+
+      const firstBracket = candidate.indexOf('[');
+      const firstBrace = candidate.indexOf('{');
+      if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
+        const lastBracket = candidate.lastIndexOf(']');
+        if (lastBracket > firstBracket) candidate = candidate.slice(firstBracket, lastBracket + 1);
+      } else if (firstBrace !== -1) {
+        const lastBrace = candidate.lastIndexOf('}');
+        if (lastBrace > firstBrace) candidate = candidate.slice(firstBrace, lastBrace + 1);
+      }
+
+      let parsed;
+      try {
+        parsed = JSON.parse(candidate);
+      } catch (err) {
+        return { cards: [], error: 'JSON Syntax Error: ' + err.message, isEmpty: false };
+      }
+
+      let items = null;
+      if (Array.isArray(parsed)) {
+        items = parsed;
+      } else if (parsed && typeof parsed === 'object') {
+        for (const key of Object.keys(parsed)) {
+          if (Array.isArray(parsed[key]) && parsed[key].length > 0 && typeof parsed[key][0] === 'object') {
+            items = parsed[key];
+            break;
+          }
+        }
+        if (!items && (parsed.question || parsed.front || parsed.q)) {
+          items = [parsed];
+        }
+      }
+
+      if (!Array.isArray(items) || items.length === 0) {
+        return { cards: [], error: 'Could not find a non-empty array of question objects in the JSON.', isEmpty: false };
+      }
+
+      const cards = [];
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (!item || typeof item !== 'object') {
+          return { cards: [], error: `Item #${i + 1} is not a valid JSON object.`, isEmpty: false };
+        }
+
+        const question = String(
+          item.question ?? item.front ?? item.prompt ?? item.q ?? item.stem ?? item.text ?? ''
+        ).trim();
+
+        let answer = String(
+          item.answer ?? item.back ?? item.correct ?? item.correct_answer ?? item.correctAnswer ?? item.a ?? ''
+        ).trim();
+
+        const rawOptions = item.choices ?? item.options ?? item.distractors ?? item.answers ?? [];
+        const choiceSet = new Set();
+
+        if (Array.isArray(rawOptions)) {
+          rawOptions.forEach(ch => {
+            const s = String(ch ?? '').trim();
+            if (s) choiceSet.add(s);
+          });
+        } else if (rawOptions && typeof rawOptions === 'object') {
+          const letterKey = answer.toUpperCase().replace(/[^A-D]/g, '');
+          if (letterKey && rawOptions[letterKey]) {
+            answer = String(rawOptions[letterKey]).trim();
+          } else if (rawOptions[answer]) {
+            answer = String(rawOptions[answer]).trim();
+          }
+          Object.values(rawOptions).forEach(v => {
+            const s = String(v ?? '').trim();
+            if (s) choiceSet.add(s);
+          });
+        }
+
+        if (!question || !answer) {
+          return { cards: [], error: `Item #${i + 1} is missing "question" or "answer".`, isEmpty: false };
+        }
+
+        const finalChoices = [answer, ...Array.from(choiceSet).filter(c => c.toLowerCase() !== answer.toLowerCase())];
+        const solution = String(item.solution ?? item.explanation ?? item.formula ?? item.rationale ?? '').trim();
+        const tag = String(item.tag ?? item.topic ?? item.subject ?? item.category ?? 'Imported').trim() || 'Imported';
+
+        cards.push({
+          id: 'imp-' + Date.now() + '-' + i + '-' + Math.random().toString(36).slice(2, 6),
+          question,
+          answer,
+          choices: finalChoices,
+          formula: solution,
+          tag,
+          mastery: 0
+        });
+      }
+
+      return { cards, error: null, isEmpty: false };
+    }
+
+    function updateBulkValidationUI() {
+      const raw = document.getElementById('bulkJsonInput').value;
+      const res = parseBulkJson(raw);
+      const box = document.getElementById('bulkValidationStatus');
+      const btn = document.getElementById('confirmBulkImportBtn');
+
+      if (res.isEmpty) {
+        validatedImportCards = [];
+        btn.disabled = true;
+        box.className = 'p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300';
+        box.textContent = 'Paste valid JSON above to validate questions before importing.';
+        return;
+      }
+
+      if (res.error) {
+        validatedImportCards = [];
+        btn.disabled = true;
+        box.className = 'p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-xs font-semibold text-rose-700 dark:text-rose-300';
+        box.textContent = res.error;
+        return;
+      }
+
+      validatedImportCards = res.cards;
+      btn.disabled = false;
+      box.className = 'p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold text-emerald-700 dark:text-emerald-300';
+      box.textContent = `Valid JSON: ${res.cards.length} question(s) ready to import!`;
+    }
+
+    function openBulkModal() {
+      const select = document.getElementById('bulkDeckSelect');
+      select.innerHTML = '';
+      state.decks.forEach(d => {
+        const folder = state.folders.find(f => f.id === d.folderId);
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = folder ? `[${folder.name}] ${d.title}` : d.title;
+        if (d.id === state.activeDeckId) opt.selected = true;
+        select.appendChild(opt);
+      });
+      const newOpt = document.createElement('option');
+      newOpt.value = '__new__';
+      newOpt.textContent = '+ Create New Deck...';
+      select.appendChild(newOpt);
+
+      const folderSel = document.getElementById('bulkFolderSelect');
+      folderSel.innerHTML = '<option value="">No Folder (Unfiled)</option>';
+      const activeDeck = getActiveDeck();
+      state.folders.forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f.id;
+        opt.textContent = f.name;
+        if (f.id === activeDeck.folderId) opt.selected = true;
+        folderSel.appendChild(opt);
+      });
+
+      document.getElementById('bulkNewDeckWrap').classList.add('hidden');
+      document.getElementById('bulkFolderWrap').classList.add('hidden');
+      updateBulkValidationUI();
+      openModal('bulkModal');
+    }
+
+    function openCardModal(existingCard) {
+      document.getElementById('cardModalTitle').textContent = existingCard ? 'Edit Question Card' : 'Add Question Card';
+      document.getElementById('editCardId').value = existingCard ? existingCard.id : '';
+      document.getElementById('cardQuestionInput').value = existingCard ? existingCard.question : '';
+      document.getElementById('cardAnswerInput').value = existingCard ? existingCard.answer : '';
+      const wrongs = existingCard && Array.isArray(existingCard.choices)
+        ? existingCard.choices.filter(c => c.trim().toLowerCase() !== existingCard.answer.trim().toLowerCase())
+        : [];
+      document.getElementById('cardWrong1Input').value = wrongs[0] || '';
+      document.getElementById('cardWrong2Input').value = wrongs[1] || '';
+      document.getElementById('cardWrong3Input').value = wrongs[2] || '';
+      document.getElementById('cardFormulaInput').value = existingCard ? (existingCard.formula || '') : '';
+      document.getElementById('cardTagInput').value = existingCard ? (existingCard.tag || '') : '';
+      openModal('cardModal');
+    }
+
+    function openSyncModal() {
+      const payload = JSON.stringify({ folders: state.folders, decks: state.decks });
+      document.getElementById('syncCodeBox').value = btoa(unescape(encodeURIComponent(payload)));
+      openModal('syncModal');
+    }
+
+    function openModal(id) {
+      const el = document.getElementById(id);
+      el.classList.remove('hidden');
+      el.classList.add('flex');
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      el.classList.add('hidden');
+      el.classList.remove('flex');
+    }
+
+    function closeMobileSidebar() {
+      document.getElementById('sidebar').classList.add('-translate-x-full');
+      document.getElementById('sidebarBackdrop').classList.add('hidden');
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function renderAll() {
+      applyTheme();
+      renderSidebar();
+      renderHeader();
+      renderFlashcards();
+      renderMcq();
+      renderCardsManager();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      initMcqSession(false);
+      renderAll();
+
+      document.querySelectorAll('.mode-btn, .mode-btn-mob').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.mode = btn.dataset.mode;
+          renderHeader();
+          if (state.mode === 'mcq') renderMcq();
+          if (state.mode === 'cards') renderCardsManager();
+        });
+      });
+
+      document.getElementById('mobileMenuBtn').onclick = () => {
+        document.getElementById('sidebar').classList.remove('-translate-x-full');
+        document.getElementById('sidebarBackdrop').classList.remove('hidden');
+      };
+      document.getElementById('mobDecksBtn').onclick = () => {
+        document.getElementById('sidebar').classList.remove('-translate-x-full');
+        document.getElementById('sidebarBackdrop').classList.remove('hidden');
+      };
+      document.getElementById('sidebarBackdrop').onclick = closeMobileSidebar;
+
+      document.getElementById('themeToggleBtn').onclick = () => {
+        state.darkMode = !state.darkMode;
+        saveState();
+        applyTheme();
+      };
+
+      // Create Folder
+      document.getElementById('newFolderBtn').onclick = () => {
+        const name = prompt('Enter folder name (e.g., Math, Electronics, GEAS, EST):');
+        if (!name || !name.trim()) return;
+        state.folders.push({
+          id: 'folder-' + Date.now(),
+          name: name.trim(),
+          collapsed: false
+        });
+        saveState();
+        renderAll();
+        showToast(`Created folder "${name.trim()}"`);
+      };
+
+      // Create Deck
+      document.getElementById('newDeckBtn').onclick = () => {
+        const activeDeck = getActiveDeck();
+        promptCreateDeck(activeDeck ? activeDeck.folderId : '');
+      };
+
+      // Move active deck to folder
+      document.getElementById('activeDeckFolderSelect').onchange = (e) => {
+        const deck = getActiveDeck();
+        deck.folderId = e.target.value;
+        saveState();
+        renderAll();
+      };
+
+      document.getElementById('renameDeckBtn').onclick = () => {
+        const deck = getActiveDeck();
+        const name = prompt('Rename deck:', deck.title);
+        if (name && name.trim()) {
+          deck.title = name.trim();
+          saveState();
+          renderAll();
+        }
+      };
+
+      const fcEl = document.getElementById('flashcardEl');
+      fcEl.addEventListener('click', () => {
+        state.fcFlipped = !state.fcFlipped;
+        fcEl.classList.toggle('rotate-y-180', state.fcFlipped);
+      });
+
+      let touchStartX = 0;
+      fcEl.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+      fcEl.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].screenX - touchStartX;
+        if (Math.abs(dx) > 60) rateCurrentFlashcard(dx > 0 ? 3 : 1);
+      });
+
+      function rateCurrentFlashcard(rating) {
+        const deck = getActiveDeck();
+        if (!deck.cards.length) return;
+        const card = deck.cards[state.fcIndex];
+        card.mastery = rating === 1 ? 0 : Math.min(4, (card.mastery || 0) + (rating >= 3 ? 1 : 0));
+        state.todayCount++;
+        state.fcFlipped = false;
+        state.fcIndex = (state.fcIndex + 1) % deck.cards.length;
+        saveState();
+        renderSidebar();
+        renderHeader();
+        renderFlashcards();
+      }
+
+      document.querySelectorAll('.rate-btn').forEach(btn => {
+        btn.addEventListener('click', () => rateCurrentFlashcard(Number(btn.dataset.rate)));
+      });
+
+      document.getElementById('fcShuffleBtn').onclick = () => {
+        const deck = getActiveDeck();
+        for (let i = deck.cards.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [deck.cards[i], deck.cards[j]] = [deck.cards[j], deck.cards[i]];
+        }
+        state.fcIndex = 0;
+        state.fcFlipped = false;
+        renderFlashcards();
+      };
+
+      document.getElementById('fcResetBtn').onclick = () => {
+        const deck = getActiveDeck();
+        deck.cards.forEach(c => c.mastery = 0);
+        saveState();
+        renderAll();
+      };
+
+      document.getElementById('mcqPracticeTab').onclick = () => {
+        stopExamTimer();
+        state.examActive = false;
+        state.mcqSubMode = 'practice';
+        document.getElementById('examReportScreen').classList.add('hidden');
+        document.getElementById('mcqCardContainer').classList.remove('hidden');
+        initMcqSession(false);
+        renderMcq();
+      };
+
+      document.getElementById('mcqExamTab').onclick = () => {
+        state.mcqSubMode = 'exam';
+        document.getElementById('examReportScreen').classList.add('hidden');
+        document.getElementById('mcqCardContainer').classList.remove('hidden');
+        renderMcq();
+      };
+
+      document.getElementById('startExamBtn').onclick = startTimedExam;
+      document.getElementById('finishExamBtn').onclick = finishTimedExam;
+      document.getElementById('retakeExamBtn').onclick = startTimedExam;
+
+      document.getElementById('mcqFlagBtn').onclick = () => {
+        const idx = state.mcqOrder[state.mcqIndex];
+        state.mcqFlags[idx] = !state.mcqFlags[idx];
+        renderMcq();
+      };
+
+      document.getElementById('mcqPrevBtn').onclick = () => {
+        if (state.mcqIndex > 0) { state.mcqIndex--; renderMcq(); }
+      };
+
+      document.getElementById('mcqNextBtn').onclick = () => {
+        if (state.mcqIndex < state.mcqOrder.length - 1) {
+          state.mcqIndex++;
+          renderMcq();
+        } else if (state.mcqSubMode === 'practice') {
+          initMcqSession(true);
+          renderMcq();
+        }
+      };
+
+      document.getElementById('openBulkBtnTop').onclick = openBulkModal;
+      document.getElementById('openBulkBtnSide').onclick = openBulkModal;
+      document.getElementById('openBulkBtnMain').onclick = openBulkModal;
+
+      document.getElementById('bulkDeckSelect').onchange = e => {
+        const isNew = e.target.value === '__new__';
+        document.getElementById('bulkNewDeckWrap').classList.toggle('hidden', !isNew);
+        document.getElementById('bulkFolderWrap').classList.toggle('hidden', !isNew);
+      };
+
+      document.getElementById('bulkJsonInput').addEventListener('input', updateBulkValidationUI);
+
+      document.getElementById('bulkJsonFileInput').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          document.getElementById('bulkJsonInput').value = ev.target.result;
+          updateBulkValidationUI();
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      });
+
+      document.getElementById('insertSampleJsonBtn').onclick = () => {
+        document.getElementById('bulkJsonInput').value = JSON.stringify(SAMPLE_JSON_OBJ, null, 2);
+        updateBulkValidationUI();
+      };
+
+      document.getElementById('copySchemaBtn').onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(CLAUDE_PROMPT_SCHEMA);
+          showToast('Claude JSON schema copied to clipboard!');
+        } catch (err) {
+          document.getElementById('bulkJsonInput').value = JSON.stringify(SAMPLE_JSON_OBJ, null, 2);
+          updateBulkValidationUI();
+        }
+      };
+
+      document.getElementById('confirmBulkImportBtn').onclick = () => {
+        if (!validatedImportCards.length) return;
+        let targetId = document.getElementById('bulkDeckSelect').value;
+        if (targetId === '__new__') {
+          const newTitle = document.getElementById('bulkNewDeckName').value.trim() || 'Imported Board Deck';
+          const folderId = document.getElementById('bulkFolderSelect').value || '';
+          targetId = 'deck-' + Date.now();
+          state.decks.push({ id: targetId, folderId, title: newTitle, color: '#7c3aed', cards: [] });
+        }
+        const deck = state.decks.find(d => d.id === targetId);
+        const startIndex = deck.cards.length;
+        const importedCount = validatedImportCards.length;
+        deck.cards.push(...validatedImportCards);
+
+        state.activeDeckId = targetId;
+        state.mode = 'mcq';
+        document.getElementById('bulkJsonInput').value = '';
+        validatedImportCards = [];
+        closeModal('bulkModal');
+        resetSessionPointers(startIndex);
+        saveState();
+        renderAll();
+        showToast(`Imported ${importedCount} question(s) into "${deck.title}"!`);
+      };
+
+      document.getElementById('addCardBtn').onclick = () => openCardModal(null);
+      document.getElementById('saveCardBtn').onclick = () => {
+        const question = document.getElementById('cardQuestionInput').value.trim();
+        const answer = document.getElementById('cardAnswerInput').value.trim();
+        if (!question || !answer) { alert('Question and Correct Answer are required.'); return; }
+        const w1 = document.getElementById('cardWrong1Input').value.trim();
+        const w2 = document.getElementById('cardWrong2Input').value.trim();
+        const w3 = document.getElementById('cardWrong3Input').value.trim();
+        const formula = document.getElementById('cardFormulaInput').value.trim();
+        const tag = document.getElementById('cardTagInput').value.trim() || 'General';
+        const choices = [answer, w1, w2, w3].filter(Boolean);
+
+        const deck = getActiveDeck();
+        const editId = document.getElementById('editCardId').value;
+        if (editId) {
+          const existing = deck.cards.find(c => c.id === editId);
+          if (existing) {
+            existing.question = question;
+            existing.answer = answer;
+            existing.choices = choices;
+            existing.formula = formula;
+            existing.tag = tag;
+          }
+        } else {
+          deck.cards.push({ id: 'card-' + Date.now(), question, answer, choices, formula, tag, mastery: 0 });
+        }
+        closeModal('cardModal');
+        resetSessionPointers(deck.cards.length - 1);
+        saveState();
+        renderAll();
+      };
+
+      document.getElementById('cardSearchInput').addEventListener('input', renderCardsManager);
+      document.getElementById('openSyncBtn').onclick = openSyncModal;
+      document.getElementById('openShortcutsBtn').onclick = () => openModal('shortcutsModal');
+
+      document.getElementById('downloadBackupBtn').onclick = () => {
+        const blob = new Blob([JSON.stringify({ folders: state.folders, decks: state.decks }, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'flashforge_board_backup.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      document.getElementById('restoreBackupInput').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          try {
+            const data = JSON.parse(ev.target.result);
+            if (Array.isArray(data.decks) && data.decks.length) {
+              state.folders = Array.isArray(data.folders) ? data.folders : [];
+              state.decks = data.decks;
+              state.activeDeckId = data.decks[0].id;
+              resetSessionPointers();
+              saveState();
+              renderAll();
+              closeModal('syncModal');
+              showToast('Backup restored!');
+            }
+          } catch (err) { alert('Invalid backup JSON file.'); }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      });
+
+      document.getElementById('copySyncCodeBtn').onclick = async () => {
+        const box = document.getElementById('syncCodeBox');
+        box.select();
+        try { await navigator.clipboard.writeText(box.value); } catch (e) {}
+        showToast('Sync code copied!');
+      };
+
+      document.getElementById('loadSyncCodeBtn').onclick = () => {
+        try {
+          const decoded = decodeURIComponent(escape(atob(document.getElementById('syncCodeBox').value.trim())));
+          const data = JSON.parse(decoded);
+          if (Array.isArray(data.decks) && data.decks.length) {
+            state.folders = Array.isArray(data.folders) ? data.folders : [];
+            state.decks = data.decks;
+            state.activeDeckId = data.decks[0].id;
+            resetSessionPointers();
+            saveState();
+            renderAll();
+            closeModal('syncModal');
+            showToast('Folders & decks loaded from sync code!');
+          }
+        } catch (err) { alert('Invalid Sync Code.'); }
+      };
+
+      document.addEventListener('keydown', e => {
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+        if (state.mode === 'flashcards') {
+          if (e.code === 'Space' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            state.fcFlipped = !state.fcFlipped;
+            fcEl.classList.toggle('rotate-y-180', state.fcFlipped);
+          } else if (['1', '2', '3', '4'].includes(e.key)) {
+            rateCurrentFlashcard(Number(e.key));
+          }
+        } else if (state.mode === 'mcq') {
+          const map = { a: 0, b: 1, c: 2, d: 3, '1': 0, '2': 1, '3': 2, '4': 3 };
+          const k = e.key.toLowerCase();
+          if (k in map) {
+            const cardIdx = state.mcqOrder[state.mcqIndex];
+            const choices = state.mcqChoicesMap[cardIdx] || [];
+            if (choices[map[k]]) handleSelectMcq(choices[map[k]]);
+          } else if (e.key === 'Enter' || e.key === 'ArrowRight') {
+            document.getElementById('mcqNextBtn').click();
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
