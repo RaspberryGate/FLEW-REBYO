@@ -29,6 +29,7 @@
     .preserve-3d { transform-style: preserve-3d; transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1); }
     .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
     .rotate-y-180 { transform: rotateY(180deg); }
+    .drop-target-active { outline: 2px dashed #6366f1; background-color: rgba(99, 102, 241, 0.12) !important; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
@@ -70,9 +71,9 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
           <span>JSON Import</span>
         </button>
-        <button id="openSyncBtn" class="p-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition" title="Sync & Backup">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
-          <span class="hidden sm:inline">Sync</span>
+        <button id="openSyncBtn" class="p-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition" title="Cloud Sync & Backup">
+          <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+          <span class="hidden sm:inline" id="cloudStatusLabel">Sync</span>
         </button>
         <button id="themeToggleBtn" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Toggle Dark Mode">
           <svg class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
@@ -86,9 +87,9 @@
   <div class="flex-1 max-w-7xl w-full mx-auto flex relative">
     <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/50 z-30 hidden lg:hidden"></div>
 
-    <!-- Left Sidebar: User Folders & Study Decks -->
+    <!-- Left Sidebar -->
     <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-76 sm:w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col">
-      <div class="p-4 border-b border-slate-200 dark:border-slate-800 space-y-2.5">
+      <div class="p-4 border-b border-slate-200 dark:border-slate-800 space-y-2">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Folders &amp; Decks</p>
@@ -96,12 +97,12 @@
           </div>
           <div class="flex items-center gap-1.5">
             <button id="newFolderBtn" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition flex items-center gap-1" title="Create New Folder">
-              <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
               <span>+ Folder</span>
             </button>
             <button id="newDeckBtn" class="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition">+ Deck</button>
           </div>
         </div>
+        <p class="text-[10px] text-slate-400">Tip: Drag any question set onto a folder to organize.</p>
       </div>
 
       <div id="deckList" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
@@ -109,7 +110,7 @@
       <div class="p-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
         <button id="openBulkBtnSide" class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold flex items-center justify-center gap-2 transition">
           <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-          <span>Bulk Import (JSON)</span>
+          <span>Import JSON Question Set</span>
         </button>
         <button id="openShortcutsBtn" class="w-full py-1.5 px-3 rounded-lg text-[11px] text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 text-center">
           Keyboard Shortcuts (?)
@@ -126,7 +127,7 @@
             <div class="flex items-center gap-2 min-w-0">
               <span id="activeDeckDot" class="w-3 h-3 rounded-full bg-indigo-500 shrink-0"></span>
               <h2 id="activeDeckTitle" class="text-xl sm:text-2xl font-bold tracking-tight truncate">Deck Title</h2>
-              <button id="renameDeckBtn" class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" title="Rename Deck">
+              <button id="renameDeckBtn" class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" title="Rename Question Set">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
               </button>
             </div>
@@ -166,8 +167,8 @@
         </div>
 
         <div id="fcEmptyState" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-10 text-center">
-          <p class="text-base font-semibold mb-1">No cards in this deck yet</p>
-          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Import a JSON batch from Claude or add cards manually.</p>
+          <p class="text-base font-semibold mb-1">No cards in this set yet</p>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Import a JSON file or add cards manually.</p>
           <button onclick="openBulkModal()" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold">Import JSON Questions</button>
         </div>
 
@@ -233,7 +234,7 @@
         </div>
 
         <div id="mcqEmptyBox" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 text-center">
-          <p class="text-sm text-slate-500">No questions in this deck yet. Import JSON questions to begin.</p>
+          <p class="text-sm text-slate-500">No questions in this set yet. Import a JSON file to begin.</p>
         </div>
 
         <div id="mcqCardContainer" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-7 space-y-5 shadow-sm">
@@ -285,7 +286,7 @@
       <section id="cardsView" class="hidden space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <input id="cardSearchInput" type="text" placeholder="Search questions, answers, or tags..." class="flex-1 min-w-[220px] px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-          <button onclick="openBulkModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 text-white text-xs sm:text-sm font-semibold">Bulk Import JSON</button>
+          <button onclick="openBulkModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 text-white text-xs sm:text-sm font-semibold">Import JSON Question Set</button>
         </div>
         <div id="cardsManagerList" class="space-y-2.5"></div>
       </section>
@@ -312,59 +313,59 @@
     </button>
   </nav>
 
-  <!-- MODAL 1: SMART JSON BULK IMPORT -->
+  <!-- MODAL 1: JSON BULK IMPORT (AUTO-CREATES NEW QUESTION SET BY FILENAME) -->
   <div id="bulkModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
     <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl">
       <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
         <div>
-          <h3 class="text-base sm:text-lg font-bold">Bulk Import Questions (JSON)</h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Auto-detects any JSON structure from Claude or a .json file</p>
+          <h3 class="text-base sm:text-lg font-bold">Import JSON Question Set</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Automatically creates a new set named after your JSON file</p>
         </div>
         <button onclick="closeModal('bulkModal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">&times;</button>
       </div>
 
       <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold mb-1">Target Deck</label>
-            <select id="bulkDeckSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm"></select>
-          </div>
-          <div id="bulkFolderWrap">
-            <label class="block text-xs font-semibold mb-1">Folder (for New Deck)</label>
-            <select id="bulkFolderSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm"></select>
-          </div>
-          <div id="bulkNewDeckWrap" class="hidden sm:col-span-2">
-            <label class="block text-xs font-semibold mb-1">New Deck Name</label>
-            <input id="bulkNewDeckName" type="text" placeholder="e.g., Week 1 — Vector Calculus" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm" />
-          </div>
-        </div>
-
         <div class="flex flex-wrap items-center gap-2">
-          <label class="cursor-pointer px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold inline-flex items-center gap-1.5 transition">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-            <span>Upload .json File</span>
+          <label class="cursor-pointer px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            <span>Choose .json File</span>
             <input id="bulkJsonFileInput" type="file" accept=".json,application/json" class="hidden" />
           </label>
-          <button id="insertSampleJsonBtn" type="button" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/70 dark:hover:bg-indigo-900/70 text-indigo-700 dark:text-indigo-300 text-xs font-semibold transition">
+          <button id="insertSampleJsonBtn" type="button" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold transition">
             Insert Sample JSON
           </button>
-          <button id="copySchemaBtn" type="button" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition">
+          <button id="copySchemaBtn" type="button" class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition">
             Copy Schema for Claude
           </button>
         </div>
 
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1">Destination Mode</label>
+            <select id="bulkDeckSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm"></select>
+          </div>
+          <div id="bulkFolderWrap">
+            <label class="block text-xs font-semibold mb-1">Assign to Folder (Optional)</label>
+            <select id="bulkFolderSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm"></select>
+          </div>
+          <div id="bulkNewDeckWrap" class="sm:col-span-2">
+            <label class="block text-xs font-semibold mb-1">New Question Set Name (Auto-filled from JSON filename)</label>
+            <input id="bulkNewDeckName" type="text" placeholder="e.g., Differential Calculus 1 Quiz" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium" />
+          </div>
+        </div>
+
         <div>
-          <textarea id="bulkJsonInput" rows="10" placeholder='Paste JSON array from Claude here...' class="w-full p-3 rounded-xl bg-slate-950 text-emerald-300 font-mono text-xs border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+          <textarea id="bulkJsonInput" rows="9" placeholder='Upload a .json file above or paste JSON from Claude here...' class="w-full p-3 rounded-xl bg-slate-950 text-emerald-300 font-mono text-xs border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
         </div>
 
         <div id="bulkValidationStatus" class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300">
-          Paste valid JSON above to validate questions before importing.
+          Select a .json file or paste valid JSON above to create a new question set.
         </div>
       </div>
 
       <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
         <button onclick="closeModal('bulkModal')" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold">Cancel</button>
-        <button id="confirmBulkImportBtn" disabled class="px-4 py-2 rounded-xl bg-indigo-600 disabled:opacity-40 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold transition">Import JSON Questions</button>
+        <button id="confirmBulkImportBtn" disabled class="px-4 py-2 rounded-xl bg-indigo-600 disabled:opacity-40 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold transition">Add Question Set</button>
       </div>
     </div>
   </div>
@@ -418,31 +419,49 @@
     </div>
   </div>
 
-  <!-- MODAL 3: SYNC & BACKUP -->
+  <!-- MODAL 3: LIVE CLOUD SYNC & BACKUP -->
   <div id="syncModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
-    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-5 space-y-4 shadow-2xl">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
-        <h3 class="text-base sm:text-lg font-bold">Phone &harr; Laptop Sync &amp; Backup</h3>
+        <h3 class="text-base sm:text-lg font-bold">Automatic Cloud Sync (Laptop &harr; Phone)</h3>
         <button onclick="closeModal('syncModal')" class="p-1 text-slate-400">&times;</button>
       </div>
-      <div class="space-y-3 text-xs sm:text-sm">
-        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2">
-          <p class="font-semibold">1. Full JSON Backup File (Includes Folders &amp; Decks)</p>
-          <div class="flex flex-wrap gap-2 pt-1">
-            <button id="downloadBackupBtn" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold">Download .json Backup</button>
-            <label class="cursor-pointer px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-xs font-semibold">
-              Restore .json Backup
-              <input id="restoreBackupInput" type="file" accept=".json,application/json" class="hidden" />
-            </label>
+
+      <!-- Firebase Cloud Sync Box -->
+      <div class="p-4 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/70 space-y-3 text-xs">
+        <div class="flex items-center justify-between">
+          <p class="font-bold text-indigo-800 dark:text-indigo-200 text-sm">1. Live Firebase Auto-Sync</p>
+          <span id="cloudModalBadge" class="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-[11px] font-semibold">Not Connected</span>
+        </div>
+        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+          Enter the same <strong>Sync Room ID</strong> on both your laptop and phone. Everything uploaded on one device will automatically sync to the other.
+        </p>
+        <div class="space-y-2">
+          <div>
+            <label class="block font-semibold mb-1">Firebase Database URL</label>
+            <input id="firebaseUrlInput" type="url" value="https://review-d33bf-default-rtdb.asia-southeast1.firebasedatabase.app" class="w-full p-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 font-mono text-xs" />
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Sync Room ID (Your Secret Key)</label>
+            <input id="firebaseRoomInput" type="text" placeholder="e.g., erick-ece-2027" class="w-full p-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 font-mono text-xs" />
           </div>
         </div>
-        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2">
-          <p class="font-semibold">2. Quick Transfer Code</p>
-          <textarea id="syncCodeBox" rows="3" class="w-full p-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono text-[11px]"></textarea>
-          <div class="flex gap-2">
-            <button id="copySyncCodeBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 dark:bg-slate-700 text-white text-xs font-semibold">Copy Code</button>
-            <button id="loadSyncCodeBtn" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold">Load Pasted Code</button>
-          </div>
+        <div class="flex flex-wrap gap-2 pt-1">
+          <button id="connectCloudBtn" class="px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold">Save &amp; Sync Now</button>
+          <button id="pullCloudBtn" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">Pull Latest from Cloud</button>
+          <button id="disconnectCloudBtn" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 font-semibold">Disconnect</button>
+        </div>
+      </div>
+
+      <!-- Manual File Backup -->
+      <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
+        <p class="font-semibold">2. Offline JSON File Backup</p>
+        <div class="flex flex-wrap gap-2 pt-1">
+          <button id="downloadBackupBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 dark:bg-slate-700 text-white font-semibold">Download .json Backup</button>
+          <label class="cursor-pointer px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 font-semibold">
+            Restore .json Backup
+            <input id="restoreBackupInput" type="file" accept=".json,application/json" class="hidden" />
+          </label>
         </div>
       </div>
     </div>
@@ -465,7 +484,9 @@
   </div>
 
   <script>
-    const STORAGE_KEY = 'flashforge_board_studio_v5';
+    const STORAGE_KEY = 'flashforge_board_studio_v7';
+    const CLOUD_CFG_KEY = 'flashforge_cloud_cfg_v1';
+    const DEFAULT_FIREBASE_URL = 'https://review-d33bf-default-rtdb.asia-southeast1.firebasedatabase.app';
 
     const DEFAULT_DECKS = [
       {
@@ -482,45 +503,13 @@
             formula: 'Vt = kT / q = (1.38e-23 * 300) / 1.6e-19 = 25.85 mV',
             tag: 'Electronics',
             mastery: 0
-          },
-          {
-            id: 'ece-2',
-            question: 'An AM transmitter has an unmodulated carrier power of 100 W and is modulated at m = 0.8. What is the total transmitted power?',
-            answer: '132 W',
-            choices: ['132 W', '180 W', '164 W', '108 W'],
-            formula: 'Pt = Pc * (1 + m^2 / 2) = 100 * (1 + 0.64 / 2) = 132 W',
-            tag: 'Comms',
-            mastery: 0
-          }
-        ]
-      },
-      {
-        id: 'deck-ect-core',
-        folderId: '',
-        title: 'Sample — ECT Laws & PEC',
-        color: '#059669',
-        cards: [
-          {
-            id: 'ect-1',
-            question: 'Under RA 9292, what is the minimum passing rating required in the Electronics Technician (ECT) licensure examination?',
-            answer: '70%',
-            choices: ['70%', '75%', '65%', '60%'],
-            formula: 'RA 9292 Sec. 16: Minimum rating of 70% to pass the ECT board exam.',
-            tag: 'ECE Law',
-            mastery: 0
-          },
-          {
-            id: 'ect-2',
-            question: 'A 4-band carbon resistor has color bands Yellow, Violet, Red, and Gold. What is its nominal resistance and tolerance?',
-            answer: '4.7 kOhm +/- 5%',
-            choices: ['4.7 kOhm +/- 5%', '47 kOhm +/- 5%', '4.7 kOhm +/- 10%', '470 Ohm +/- 5%'],
-            formula: 'Yellow=4, Violet=7, Red=x100, Gold=+/-5% -> 4,700 Ohms +/- 5%',
-            tag: 'Basic Electronics',
-            mastery: 0
           }
         ]
       }
     ];
+
+    let cloudConfig = { url: DEFAULT_FIREBASE_URL, room: '' };
+    let draggedDeckId = null;
 
     let state = {
       folders: [],
@@ -560,17 +549,143 @@
       'Include 4 distinct choices per question (the correct answer plus 3 realistic PRC board-exam distractors) and a concise step-by-step solution.'
     ].join('\n\n');
 
-    function showToast(msg) {
+    function showToast(msg, isError = false) {
       const el = document.getElementById('toastBanner');
       el.textContent = msg;
+      el.className = `fixed top-4 right-4 z-[60] px-4 py-3 rounded-xl text-white text-xs sm:text-sm font-semibold shadow-lg transition ${isError ? 'bg-rose-600' : 'bg-emerald-600'}`;
       el.classList.remove('hidden');
       clearTimeout(el._timer);
       el._timer = setTimeout(() => el.classList.add('hidden'), 3500);
     }
 
+    function formatFilenameToTitle(filename) {
+      return String(filename || '')
+        .replace(/\.json$/i, '')
+        .replace(/[_-]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/\b\w/g, ch => ch.toUpperCase());
+    }
+
+    function loadCloudConfig() {
+      try {
+        const raw = localStorage.getItem(CLOUD_CFG_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          cloudConfig.url = (parsed.url || DEFAULT_FIREBASE_URL).trim().replace(/\/+$/, '');
+          cloudConfig.room = (parsed.room || '').trim().replace(/[^a-zA-Z0-9_-]/g, '');
+        }
+      } catch (e) {}
+      updateCloudStatusUI();
+    }
+
+    function saveCloudConfig() {
+      localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify(cloudConfig));
+      updateCloudStatusUI();
+    }
+
+    function getCloudEndpoint() {
+      if (!cloudConfig.url || !cloudConfig.room) return '';
+      return `${cloudConfig.url}/flashforge_rooms/${cloudConfig.room}.json`;
+    }
+
+    function updateCloudStatusUI(syncingState = '') {
+      const connected = !!(cloudConfig.url && cloudConfig.room);
+      const dot = document.getElementById('cloudStatusDot');
+      const lbl = document.getElementById('cloudStatusLabel');
+      const badge = document.getElementById('cloudModalBadge');
+
+      if (!connected) {
+        dot.className = 'w-2 h-2 rounded-full bg-slate-400';
+        lbl.textContent = 'Sync';
+        badge.textContent = 'Not Connected';
+        badge.className = 'px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-[11px] font-semibold';
+        return;
+      }
+
+      if (syncingState === 'syncing') {
+        dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+        lbl.textContent = 'Syncing...';
+      } else if (syncingState === 'error') {
+        dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+        lbl.textContent = 'Sync Error';
+        badge.textContent = 'Connection Error';
+        badge.className = 'px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[11px] font-semibold';
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+        lbl.textContent = 'Cloud On';
+        badge.textContent = 'Connected: ' + cloudConfig.room;
+        badge.className = 'px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[11px] font-semibold';
+      }
+    }
+
+    async function pushToCloud(silent = true) {
+      const endpoint = getCloudEndpoint();
+      if (!endpoint) return;
+      updateCloudStatusUI('syncing');
+      try {
+        const res = await fetch(endpoint, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            updatedAt: Date.now(),
+            folders: state.folders,
+            decks: state.decks
+          })
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        updateCloudStatusUI('ok');
+        if (!silent) showToast('Synced to cloud! Open on your phone to see updates.');
+      } catch (err) {
+        updateCloudStatusUI('error');
+        if (!silent) showToast('Cloud push failed. Check Firebase URL & Rules.', true);
+      }
+    }
+
+    async function pullFromCloud(silent = false) {
+      const endpoint = getCloudEndpoint();
+      if (!endpoint) return false;
+      updateCloudStatusUI('syncing');
+      try {
+        const res = await fetch(endpoint);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        updateCloudStatusUI('ok');
+        if (data && Array.isArray(data.decks) && data.decks.length > 0) {
+          state.folders = Array.isArray(data.folders) ? data.folders : [];
+          state.decks = data.decks.map(d => ({ ...d, folderId: d.folderId || '' }));
+          if (!state.decks.some(d => d.id === state.activeDeckId)) {
+            state.activeDeckId = state.decks[0].id;
+          }
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            folders: state.folders,
+            decks: state.decks,
+            activeDeckId: state.activeDeckId,
+            todayCount: state.todayCount,
+            streak: state.streak,
+            darkMode: state.darkMode
+          }));
+          resetSessionPointers();
+          renderAll();
+          if (!silent) showToast('Loaded latest folders & question sets from cloud!');
+          return true;
+        } else {
+          await pushToCloud(true);
+          if (!silent) showToast('Connected! Uploaded your current question sets to cloud.');
+          return true;
+        }
+      } catch (err) {
+        updateCloudStatusUI('error');
+        if (!silent) showToast('Could not connect to Firebase URL. Verify URL & rules.', true);
+        return false;
+      }
+    }
+
     function loadState() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('flashforge_board_studio_v4');
+        const raw = localStorage.getItem(STORAGE_KEY)
+          || localStorage.getItem('flashforge_board_studio_v6')
+          || localStorage.getItem('flashforge_board_studio_v5');
         if (raw) {
           const saved = JSON.parse(raw);
           if (Array.isArray(saved.decks) && saved.decks.length > 0) {
@@ -589,7 +704,7 @@
       state.activeDeckId = state.decks[0].id;
     }
 
-    function saveState() {
+    function saveState(syncCloud = true) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           folders: state.folders,
@@ -600,6 +715,9 @@
           darkMode: state.darkMode
         }));
       } catch (e) {}
+      if (syncCloud && getCloudEndpoint()) {
+        pushToCloud(true);
+      }
     }
 
     function getActiveDeck() {
@@ -610,6 +728,23 @@
       document.documentElement.classList.toggle('dark', state.darkMode);
     }
 
+    function moveDeckToFolder(deckId, targetFolderId) {
+      const deck = state.decks.find(d => d.id === deckId);
+      if (!deck || deck.folderId === targetFolderId) return;
+      deck.folderId = targetFolderId;
+      if (targetFolderId) {
+        const targetFolder = state.folders.find(f => f.id === targetFolderId);
+        if (targetFolder) {
+          targetFolder.collapsed = false;
+          showToast(`Moved "${deck.title}" into "${targetFolder.name}"`);
+        }
+      } else {
+        showToast(`Moved "${deck.title}" to Unfiled`);
+      }
+      saveState();
+      renderAll();
+    }
+
     function createDeckRowEl(deck) {
       const count = deck.cards.length;
       const mastered = deck.cards.filter(c => (c.mastery || 0) >= 3).length;
@@ -617,26 +752,45 @@
       const isActive = deck.id === state.activeDeckId;
 
       const row = document.createElement('div');
-      row.className = 'group flex items-center justify-between p-2 rounded-xl cursor-pointer transition ' +
+      row.draggable = true;
+      row.className = 'group flex items-center justify-between p-2 rounded-xl cursor-grab active:cursor-grabbing transition ' +
         (isActive
           ? 'bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 font-semibold'
           : 'hover:bg-slate-100 dark:hover:bg-slate-800/70 text-slate-700 dark:text-slate-300');
 
       row.innerHTML = `
-        <div class="min-w-0 flex-1 pr-1">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full shrink-0" style="background:${deck.color || '#4f46e5'}"></span>
-            <span class="text-xs truncate">${escapeHtml(deck.title)}</span>
+        <div class="min-w-0 flex-1 pr-1 flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-slate-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z"/></svg>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full shrink-0" style="background:${deck.color || '#4f46e5'}"></span>
+              <span class="text-xs truncate">${escapeHtml(deck.title)}</span>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-0.5 pl-3.5">${count} cards &bull; ${pct}% mastered</div>
           </div>
-          <div class="text-[10px] text-slate-400 mt-0.5 pl-4">${count} cards &bull; ${pct}% mastered</div>
         </div>
-        ${state.decks.length > 1 ? `<button data-del-deck="${deck.id}" class="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-500 text-xs" title="Delete Deck">&times;</button>` : ''}
+        ${state.decks.length > 1 ? `<button data-del-deck="${deck.id}" class="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-500 text-xs" title="Delete Question Set">&times;</button>` : ''}
       `;
+
+      row.addEventListener('dragstart', (e) => {
+        draggedDeckId = deck.id;
+        row.classList.add('opacity-50');
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', deck.id);
+        }
+      });
+
+      row.addEventListener('dragend', () => {
+        draggedDeckId = null;
+        row.classList.remove('opacity-50');
+        document.querySelectorAll('.drop-target-active').forEach(el => el.classList.remove('drop-target-active'));
+      });
 
       row.addEventListener('click', (e) => {
         if (e.target.dataset.delDeck) {
           e.stopPropagation();
-          if (confirm('Delete deck "' + deck.title + '"?')) {
+          if (confirm('Delete question set "' + deck.title + '"?')) {
             state.decks = state.decks.filter(d => d.id !== deck.id);
             if (state.activeDeckId === deck.id) state.activeDeckId = state.decks[0].id;
             resetSessionPointers();
@@ -647,12 +801,31 @@
         }
         state.activeDeckId = deck.id;
         resetSessionPointers();
-        saveState();
+        saveState(false);
         closeMobileSidebar();
         renderAll();
       });
 
       return row;
+    }
+
+    function attachFolderDropEvents(el, folderId) {
+      el.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+        el.classList.add('drop-target-active');
+      });
+      el.addEventListener('dragleave', (e) => {
+        if (!el.contains(e.relatedTarget)) {
+          el.classList.remove('drop-target-active');
+        }
+      });
+      el.addEventListener('drop', (e) => {
+        e.preventDefault();
+        el.classList.remove('drop-target-active');
+        const id = draggedDeckId || (e.dataTransfer && e.dataTransfer.getData('text/plain'));
+        if (id) moveDeckToFolder(id, folderId);
+      });
     }
 
     function renderSidebar() {
@@ -666,11 +839,11 @@
         totalMastered += deck.cards.filter(c => (c.mastery || 0) >= 3).length;
       });
 
-      // Render User-Created Folders first
       state.folders.forEach(folder => {
         const folderDecks = state.decks.filter(d => d.folderId === folder.id);
         const folderWrap = document.createElement('div');
-        folderWrap.className = 'rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 overflow-hidden';
+        folderWrap.className = 'rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 overflow-hidden transition';
+        attachFolderDropEvents(folderWrap, folder.id);
 
         const header = document.createElement('div');
         header.className = 'group flex items-center justify-between px-2.5 py-2 cursor-pointer hover:bg-slate-100/80 dark:hover:bg-slate-800/60 transition';
@@ -682,7 +855,7 @@
             <span class="text-[10px] text-slate-400 font-medium">(${folderDecks.length})</span>
           </div>
           <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
-            <button data-add-in-folder="${folder.id}" class="p-1 text-slate-400 hover:text-indigo-600 text-xs font-bold" title="New Deck in Folder">+</button>
+            <button data-add-in-folder="${folder.id}" class="p-1 text-slate-400 hover:text-indigo-600 text-xs font-bold" title="New Set in Folder">+</button>
             <button data-ren-folder="${folder.id}" class="p-1 text-slate-400 hover:text-slate-600 text-[11px]" title="Rename Folder">&#9998;</button>
             <button data-del-folder="${folder.id}" class="p-1 text-slate-400 hover:text-rose-500 text-xs" title="Delete Folder">&times;</button>
           </div>
@@ -706,7 +879,7 @@
           }
           if (e.target.dataset.delFolder) {
             e.stopPropagation();
-            if (confirm(`Delete folder "${folder.name}"? (Decks inside will be moved to Unfiled, not deleted.)`)) {
+            if (confirm(`Delete folder "${folder.name}"? (Question sets inside move to Unfiled.)`)) {
               state.decks.forEach(d => { if (d.folderId === folder.id) d.folderId = ''; });
               state.folders = state.folders.filter(f => f.id !== folder.id);
               saveState();
@@ -715,7 +888,7 @@
             return;
           }
           folder.collapsed = !folder.collapsed;
-          saveState();
+          saveState(false);
           renderSidebar();
         });
 
@@ -725,7 +898,7 @@
           const body = document.createElement('div');
           body.className = 'px-2 pb-2 pt-0.5 space-y-1 border-t border-slate-200/50 dark:border-slate-800/70';
           if (folderDecks.length === 0) {
-            body.innerHTML = `<p class="text-[11px] text-slate-400 py-1.5 px-2 italic">Empty folder — click + to add deck</p>`;
+            body.innerHTML = `<p class="text-[11px] text-slate-400 py-1.5 px-2 italic">Drop a question set here</p>`;
           } else {
             folderDecks.forEach(d => body.appendChild(createDeckRowEl(d)));
           }
@@ -735,17 +908,19 @@
         list.appendChild(folderWrap);
       });
 
-      // Render Unfiled Decks
       const unfiledDecks = state.decks.filter(d => !d.folderId || !state.folders.some(f => f.id === d.folderId));
-      if (unfiledDecks.length > 0) {
-        if (state.folders.length > 0) {
-          const lbl = document.createElement('p');
-          lbl.className = 'text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 pt-2';
-          lbl.textContent = 'Unfiled Decks';
-          list.appendChild(lbl);
-        }
-        unfiledDecks.forEach(d => list.appendChild(createDeckRowEl(d)));
+      const unfiledZone = document.createElement('div');
+      unfiledZone.className = 'rounded-xl p-1 space-y-1 transition min-h-[44px]';
+      attachFolderDropEvents(unfiledZone, '');
+
+      if (state.folders.length > 0) {
+        const lbl = document.createElement('p');
+        lbl.className = 'text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 pt-1';
+        lbl.textContent = 'Unfiled Question Sets (Drop here to unfile)';
+        unfiledZone.appendChild(lbl);
       }
+      unfiledDecks.forEach(d => unfiledZone.appendChild(createDeckRowEl(d)));
+      list.appendChild(unfiledZone);
 
       document.getElementById('globalMasteryText').textContent = `${totalMastered} / ${totalCards} Mastered`;
       document.getElementById('streakCount').textContent = state.streak;
@@ -753,7 +928,7 @@
     }
 
     function promptCreateDeck(defaultFolderId = '') {
-      const name = prompt('Enter new deck name:');
+      const name = prompt('Enter new question set name:');
       if (!name || !name.trim()) return;
       const colors = ['#4f46e5', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0284c7'];
       const id = 'deck-' + Date.now();
@@ -789,9 +964,8 @@
       document.getElementById('activeDeckTitle').textContent = deck.title;
       document.getElementById('activeDeckDot').style.background = deck.color || '#4f46e5';
       const mastered = deck.cards.filter(c => (c.mastery || 0) >= 3).length;
-      document.getElementById('activeDeckMeta').textContent = `${deck.cards.length} cards in deck \u2022 ${mastered} mastered`;
+      document.getElementById('activeDeckMeta').textContent = `${deck.cards.length} cards in set \u2022 ${mastered} mastered`;
 
-      // Folder Badge & Move-to-Folder Dropdown
       const folder = state.folders.find(f => f.id === deck.folderId);
       const folderBadge = document.getElementById('activeFolderBadge');
       if (folder) {
@@ -1025,7 +1199,7 @@
       if (state.mcqSubMode === 'practice' && state.mcqAnswers[cardIdx] !== undefined) return;
       state.mcqAnswers[cardIdx] = choiceText;
       state.todayCount++;
-      saveState();
+      saveState(false);
       renderSidebar();
       renderMcq();
     }
@@ -1152,12 +1326,13 @@
       });
     }
 
-    // FLEXIBLE JSON BULK PARSER
+    // FLEXIBLE JSON BULK PARSER (ALSO EXTRACTS OPTIONAL TOP-LEVEL TITLE)
     let validatedImportCards = [];
+    let detectedJsonTitle = '';
 
     function parseBulkJson(rawText) {
       const trimmed = rawText.trim();
-      if (!trimmed) return { cards: [], error: null, isEmpty: true };
+      if (!trimmed) return { cards: [], title: '', error: null, isEmpty: true };
 
       let candidate = trimmed;
       const fenceStart = new RegExp('^\\x60{3}(?:json)?\\s*', 'i');
@@ -1178,13 +1353,17 @@
       try {
         parsed = JSON.parse(candidate);
       } catch (err) {
-        return { cards: [], error: 'JSON Syntax Error: ' + err.message, isEmpty: false };
+        return { cards: [], title: '', error: 'JSON Syntax Error: ' + err.message, isEmpty: false };
       }
 
       let items = null;
+      let extractedTitle = '';
       if (Array.isArray(parsed)) {
         items = parsed;
       } else if (parsed && typeof parsed === 'object') {
+        if (typeof parsed.title === 'string' && parsed.title.trim()) {
+          extractedTitle = parsed.title.trim();
+        }
         for (const key of Object.keys(parsed)) {
           if (Array.isArray(parsed[key]) && parsed[key].length > 0 && typeof parsed[key][0] === 'object') {
             items = parsed[key];
@@ -1197,14 +1376,14 @@
       }
 
       if (!Array.isArray(items) || items.length === 0) {
-        return { cards: [], error: 'Could not find a non-empty array of question objects in the JSON.', isEmpty: false };
+        return { cards: [], title: extractedTitle, error: 'Could not find a non-empty array of question objects in the JSON.', isEmpty: false };
       }
 
       const cards = [];
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
         if (!item || typeof item !== 'object') {
-          return { cards: [], error: `Item #${i + 1} is not a valid JSON object.`, isEmpty: false };
+          return { cards: [], title: extractedTitle, error: `Item #${i + 1} is not a valid JSON object.`, isEmpty: false };
         }
 
         const question = String(
@@ -1237,12 +1416,12 @@
         }
 
         if (!question || !answer) {
-          return { cards: [], error: `Item #${i + 1} is missing "question" or "answer".`, isEmpty: false };
+          return { cards: [], title: extractedTitle, error: `Item #${i + 1} is missing "question" or "answer".`, isEmpty: false };
         }
 
         const finalChoices = [answer, ...Array.from(choiceSet).filter(c => c.toLowerCase() !== answer.toLowerCase())];
         const solution = String(item.solution ?? item.explanation ?? item.formula ?? item.rationale ?? '').trim();
-        const tag = String(item.tag ?? item.topic ?? item.subject ?? item.category ?? 'Imported').trim() || 'Imported';
+        const tag = String(item.tag ?? item.topic ?? item.subject ?? item.category ?? extractedTitle ?? 'Imported').trim() || 'Imported';
 
         cards.push({
           id: 'imp-' + Date.now() + '-' + i + '-' + Math.random().toString(36).slice(2, 6),
@@ -1255,7 +1434,7 @@
         });
       }
 
-      return { cards, error: null, isEmpty: false };
+      return { cards, title: extractedTitle, error: null, isEmpty: false };
     }
 
     function updateBulkValidationUI() {
@@ -1263,12 +1442,14 @@
       const res = parseBulkJson(raw);
       const box = document.getElementById('bulkValidationStatus');
       const btn = document.getElementById('confirmBulkImportBtn');
+      const nameInput = document.getElementById('bulkNewDeckName');
 
       if (res.isEmpty) {
         validatedImportCards = [];
+        detectedJsonTitle = '';
         btn.disabled = true;
         box.className = 'p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300';
-        box.textContent = 'Paste valid JSON above to validate questions before importing.';
+        box.textContent = 'Select a .json file or paste valid JSON above to create a new question set.';
         return;
       }
 
@@ -1281,40 +1462,46 @@
       }
 
       validatedImportCards = res.cards;
+      detectedJsonTitle = res.title;
+      if (!nameInput.value.trim() && detectedJsonTitle) {
+        nameInput.value = detectedJsonTitle;
+      }
       btn.disabled = false;
       box.className = 'p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold text-emerald-700 dark:text-emerald-300';
-      box.textContent = `Valid JSON: ${res.cards.length} question(s) ready to import!`;
+      box.textContent = `Valid JSON: ${res.cards.length} question(s) ready to add as a new set!`;
     }
 
     function openBulkModal() {
       const select = document.getElementById('bulkDeckSelect');
       select.innerHTML = '';
+
+      // Default to creating a brand-new set based on the JSON file name
+      const newOpt = document.createElement('option');
+      newOpt.value = '__new__';
+      newOpt.textContent = '+ Create New Question Set (From JSON Name)';
+      newOpt.selected = true;
+      select.appendChild(newOpt);
+
       state.decks.forEach(d => {
         const folder = state.folders.find(f => f.id === d.folderId);
         const opt = document.createElement('option');
         opt.value = d.id;
-        opt.textContent = folder ? `[${folder.name}] ${d.title}` : d.title;
-        if (d.id === state.activeDeckId) opt.selected = true;
+        opt.textContent = folder ? `Append to: [${folder.name}] ${d.title}` : `Append to: ${d.title}`;
         select.appendChild(opt);
       });
-      const newOpt = document.createElement('option');
-      newOpt.value = '__new__';
-      newOpt.textContent = '+ Create New Deck...';
-      select.appendChild(newOpt);
 
       const folderSel = document.getElementById('bulkFolderSelect');
-      folderSel.innerHTML = '<option value="">No Folder (Unfiled)</option>';
-      const activeDeck = getActiveDeck();
+      folderSel.innerHTML = '<option value="">No Folder (Unfiled — Drag later)</option>';
       state.folders.forEach(f => {
         const opt = document.createElement('option');
         opt.value = f.id;
         opt.textContent = f.name;
-        if (f.id === activeDeck.folderId) opt.selected = true;
         folderSel.appendChild(opt);
       });
 
-      document.getElementById('bulkNewDeckWrap').classList.add('hidden');
-      document.getElementById('bulkFolderWrap').classList.add('hidden');
+      document.getElementById('bulkNewDeckName').value = '';
+      document.getElementById('bulkNewDeckWrap').classList.remove('hidden');
+      document.getElementById('bulkFolderWrap').classList.remove('hidden');
       updateBulkValidationUI();
       openModal('bulkModal');
     }
@@ -1336,8 +1523,9 @@
     }
 
     function openSyncModal() {
-      const payload = JSON.stringify({ folders: state.folders, decks: state.decks });
-      document.getElementById('syncCodeBox').value = btoa(unescape(encodeURIComponent(payload)));
+      document.getElementById('firebaseUrlInput').value = cloudConfig.url || DEFAULT_FIREBASE_URL;
+      document.getElementById('firebaseRoomInput').value = cloudConfig.room;
+      updateCloudStatusUI();
       openModal('syncModal');
     }
 
@@ -1375,10 +1563,15 @@
       renderCardsManager();
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      loadCloudConfig();
       loadState();
       initMcqSession(false);
       renderAll();
+
+      if (getCloudEndpoint()) {
+        await pullFromCloud(true);
+      }
 
       document.querySelectorAll('.mode-btn, .mode-btn-mob').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1401,41 +1594,31 @@
 
       document.getElementById('themeToggleBtn').onclick = () => {
         state.darkMode = !state.darkMode;
-        saveState();
+        saveState(false);
         applyTheme();
       };
 
-      // Create Folder
       document.getElementById('newFolderBtn').onclick = () => {
         const name = prompt('Enter folder name (e.g., Math, Electronics, GEAS, EST):');
         if (!name || !name.trim()) return;
-        state.folders.push({
-          id: 'folder-' + Date.now(),
-          name: name.trim(),
-          collapsed: false
-        });
+        state.folders.push({ id: 'folder-' + Date.now(), name: name.trim(), collapsed: false });
         saveState();
         renderAll();
         showToast(`Created folder "${name.trim()}"`);
       };
 
-      // Create Deck
       document.getElementById('newDeckBtn').onclick = () => {
         const activeDeck = getActiveDeck();
         promptCreateDeck(activeDeck ? activeDeck.folderId : '');
       };
 
-      // Move active deck to folder
       document.getElementById('activeDeckFolderSelect').onchange = (e) => {
-        const deck = getActiveDeck();
-        deck.folderId = e.target.value;
-        saveState();
-        renderAll();
+        moveDeckToFolder(getActiveDeck().id, e.target.value);
       };
 
       document.getElementById('renameDeckBtn').onclick = () => {
         const deck = getActiveDeck();
-        const name = prompt('Rename deck:', deck.title);
+        const name = prompt('Rename question set:', deck.title);
         if (name && name.trim()) {
           deck.title = name.trim();
           saveState();
@@ -1545,9 +1728,16 @@
 
       document.getElementById('bulkJsonInput').addEventListener('input', updateBulkValidationUI);
 
+      // Auto-populate the new question set name directly from the uploaded .json filename
       document.getElementById('bulkJsonFileInput').addEventListener('change', e => {
         const file = e.target.files[0];
         if (!file) return;
+        const cleanName = formatFilenameToTitle(file.name);
+        document.getElementById('bulkDeckSelect').value = '__new__';
+        document.getElementById('bulkNewDeckWrap').classList.remove('hidden');
+        document.getElementById('bulkFolderWrap').classList.remove('hidden');
+        document.getElementById('bulkNewDeckName').value = cleanName;
+
         const reader = new FileReader();
         reader.onload = ev => {
           document.getElementById('bulkJsonInput').value = ev.target.result;
@@ -1559,6 +1749,9 @@
 
       document.getElementById('insertSampleJsonBtn').onclick = () => {
         document.getElementById('bulkJsonInput').value = JSON.stringify(SAMPLE_JSON_OBJ, null, 2);
+        if (!document.getElementById('bulkNewDeckName').value.trim()) {
+          document.getElementById('bulkNewDeckName').value = 'Sample Electronics Set';
+        }
         updateBulkValidationUI();
       };
 
@@ -1572,29 +1765,45 @@
         }
       };
 
-      document.getElementById('confirmBulkImportBtn').onclick = () => {
+      document.getElementById('confirmBulkImportBtn').onclick = async () => {
         if (!validatedImportCards.length) return;
         let targetId = document.getElementById('bulkDeckSelect').value;
+        let startIndex = 0;
+
         if (targetId === '__new__') {
-          const newTitle = document.getElementById('bulkNewDeckName').value.trim() || 'Imported Board Deck';
+          const newTitle = document.getElementById('bulkNewDeckName').value.trim()
+            || detectedJsonTitle
+            || ('Question Set ' + (state.decks.length + 1));
           const folderId = document.getElementById('bulkFolderSelect').value || '';
+          const colors = ['#4f46e5', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0284c7'];
           targetId = 'deck-' + Date.now();
-          state.decks.push({ id: targetId, folderId, title: newTitle, color: '#7c3aed', cards: [] });
+          state.decks.push({
+            id: targetId,
+            folderId,
+            title: newTitle,
+            color: colors[state.decks.length % colors.length],
+            cards: []
+          });
+        } else {
+          const existingDeck = state.decks.find(d => d.id === targetId);
+          if (existingDeck) startIndex = existingDeck.cards.length;
         }
+
         const deck = state.decks.find(d => d.id === targetId);
-        const startIndex = deck.cards.length;
         const importedCount = validatedImportCards.length;
         deck.cards.push(...validatedImportCards);
 
         state.activeDeckId = targetId;
         state.mode = 'mcq';
         document.getElementById('bulkJsonInput').value = '';
+        document.getElementById('bulkNewDeckName').value = '';
         validatedImportCards = [];
+        detectedJsonTitle = '';
         closeModal('bulkModal');
         resetSessionPointers(startIndex);
         saveState();
         renderAll();
-        showToast(`Imported ${importedCount} question(s) into "${deck.title}"!`);
+        showToast(`Added "${deck.title}" (${importedCount} questions)!`);
       };
 
       document.getElementById('addCardBtn').onclick = () => openCardModal(null);
@@ -1633,6 +1842,40 @@
       document.getElementById('openSyncBtn').onclick = openSyncModal;
       document.getElementById('openShortcutsBtn').onclick = () => openModal('shortcutsModal');
 
+      // Cloud Sync Modal Buttons
+      document.getElementById('connectCloudBtn').onclick = async () => {
+        const url = document.getElementById('firebaseUrlInput').value.trim().replace(/\/+$/, '');
+        const room = document.getElementById('firebaseRoomInput').value.trim().replace(/[^a-zA-Z0-9_-]/g, '');
+        if (!url || !room) {
+          showToast('Please enter both the Firebase URL and a Sync Room ID.', true);
+          return;
+        }
+        cloudConfig.url = url;
+        cloudConfig.room = room;
+        saveCloudConfig();
+        await pushToCloud(false);
+      };
+
+      document.getElementById('pullCloudBtn').onclick = async () => {
+        const url = document.getElementById('firebaseUrlInput').value.trim().replace(/\/+$/, '');
+        const room = document.getElementById('firebaseRoomInput').value.trim().replace(/[^a-zA-Z0-9_-]/g, '');
+        if (!url || !room) {
+          showToast('Please enter both the Firebase URL and a Sync Room ID.', true);
+          return;
+        }
+        cloudConfig.url = url;
+        cloudConfig.room = room;
+        saveCloudConfig();
+        await pullFromCloud(false);
+      };
+
+      document.getElementById('disconnectCloudBtn').onclick = () => {
+        cloudConfig = { url: DEFAULT_FIREBASE_URL, room: '' };
+        saveCloudConfig();
+        document.getElementById('firebaseRoomInput').value = '';
+        showToast('Disconnected from cloud sync.');
+      };
+
       document.getElementById('downloadBackupBtn').onclick = () => {
         const blob = new Blob([JSON.stringify({ folders: state.folders, decks: state.decks }, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -1665,30 +1908,6 @@
         reader.readAsText(file);
         e.target.value = '';
       });
-
-      document.getElementById('copySyncCodeBtn').onclick = async () => {
-        const box = document.getElementById('syncCodeBox');
-        box.select();
-        try { await navigator.clipboard.writeText(box.value); } catch (e) {}
-        showToast('Sync code copied!');
-      };
-
-      document.getElementById('loadSyncCodeBtn').onclick = () => {
-        try {
-          const decoded = decodeURIComponent(escape(atob(document.getElementById('syncCodeBox').value.trim())));
-          const data = JSON.parse(decoded);
-          if (Array.isArray(data.decks) && data.decks.length) {
-            state.folders = Array.isArray(data.folders) ? data.folders : [];
-            state.decks = data.decks;
-            state.activeDeckId = data.decks[0].id;
-            resetSessionPointers();
-            saveState();
-            renderAll();
-            closeModal('syncModal');
-            showToast('Folders & decks loaded from sync code!');
-          }
-        } catch (err) { alert('Invalid Sync Code.'); }
-      };
 
       document.addEventListener('keydown', e => {
         if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
