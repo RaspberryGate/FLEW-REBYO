@@ -133,7 +133,7 @@
             </div>
           </div>
           <div class="flex flex-wrap items-center gap-2 mt-1">
-            <p id="activeDeckMeta" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">0 cards in deck</p>
+            <p id="activeDeckMeta" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">0 cards in set</p>
             <span class="text-slate-300 dark:text-slate-700">&bull;</span>
             <label class="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
               <span>Folder:</span>
@@ -157,7 +157,7 @@
         <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
           <span id="fcProgressText">Card 1 of 1</span>
           <div class="flex items-center gap-3">
-            <button id="fcShuffleBtn" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium">Shuffle</button>
+            <button id="fcShuffleBtn" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium">Shuffle Set</button>
             <button id="fcResetBtn" class="hover:text-rose-600 dark:hover:text-rose-400 font-medium">Reset Mastery</button>
           </div>
         </div>
@@ -217,6 +217,17 @@
             <button id="mcqExamTab" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition">Timed Mock Exam</button>
           </div>
 
+          <!-- Deck-Specific Randomize Controls (Practice Mode) -->
+          <div id="practiceShuffleControls" class="flex items-center gap-1.5">
+            <button id="mcqShuffleDeckBtn" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/80 dark:hover:bg-indigo-900/70 border border-indigo-200/80 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 text-xs font-semibold inline-flex items-center gap-1.5 transition" title="Randomize question order in this set only">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+              <span>Shuffle Set</span>
+            </button>
+            <button id="mcqOrderedDeckBtn" class="hidden px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 transition" title="Restore original question order">
+              Reset Order
+            </button>
+          </div>
+
           <div id="examSetupControls" class="hidden flex items-center gap-2">
             <select id="examCountSelect" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
               <option value="10">10 Items (15m)</option>
@@ -239,9 +250,15 @@
 
         <div id="mcqCardContainer" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-7 space-y-5 shadow-sm">
           <div class="flex items-center justify-between gap-2 text-xs">
-            <span id="mcqCounterBadge" class="font-bold text-indigo-600 dark:text-indigo-400">Question 1 of 6</span>
+            <div class="flex items-center gap-2">
+              <span id="mcqCounterBadge" class="font-bold text-indigo-600 dark:text-indigo-400">Question 1 of 6</span>
+              <span id="mcqShuffledTag" class="hidden px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold">Randomized</span>
+            </div>
             <div class="flex items-center gap-2">
               <span id="mcqTopicBadge" class="px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">Topic</span>
+              <button id="mcqRandomJumpBtn" class="px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-indigo-100 dark:bg-slate-800 dark:hover:bg-indigo-950 text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold transition" title="Pick a random question from this set">
+                Random
+              </button>
               <button id="mcqFlagBtn" class="hidden px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700 text-slate-500 hover:text-amber-600">Flag</button>
             </div>
           </div>
@@ -313,7 +330,7 @@
     </button>
   </nav>
 
-  <!-- MODAL 1: JSON BULK IMPORT (AUTO-CREATES NEW QUESTION SET BY FILENAME) -->
+  <!-- MODAL 1: JSON BULK IMPORT -->
   <div id="bulkModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
     <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl">
       <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
@@ -484,7 +501,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY = 'flashforge_board_studio_v7';
+    const STORAGE_KEY = 'flashforge_board_studio_v8';
     const CLOUD_CFG_KEY = 'flashforge_cloud_cfg_v1';
     const DEFAULT_FIREBASE_URL = 'https://review-d33bf-default-rtdb.asia-southeast1.firebasedatabase.app';
 
@@ -522,6 +539,7 @@
       streak: 1,
       darkMode: false,
       mcqSubMode: 'practice',
+      mcqShuffled: false,
       mcqIndex: 0,
       mcqOrder: [],
       mcqChoicesMap: {},
@@ -684,6 +702,7 @@
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY)
+          || localStorage.getItem('flashforge_board_studio_v7')
           || localStorage.getItem('flashforge_board_studio_v6')
           || localStorage.getItem('flashforge_board_studio_v5');
         if (raw) {
@@ -951,6 +970,7 @@
       stopExamTimer();
       state.examActive = false;
       state.mcqSubMode = 'practice';
+      state.mcqShuffled = false;
       document.getElementById('examReportScreen').classList.add('hidden');
       document.getElementById('mcqCardContainer').classList.remove('hidden');
       initMcqSession(false);
@@ -1053,6 +1073,7 @@
       if (limitCount && limitCount !== 'all') {
         indices = indices.slice(0, Number(limitCount));
       }
+      state.mcqShuffled = !!shuffleAll;
       state.mcqOrder = indices;
       state.mcqIndex = 0;
       state.mcqAnswers = {};
@@ -1098,10 +1119,15 @@
       practiceTab.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition ' + (isPractice ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500');
       examTab.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition ' + (!isPractice ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500');
 
+      document.getElementById('practiceShuffleControls').classList.toggle('hidden', !isPractice || !deck.cards.length);
+      document.getElementById('mcqOrderedDeckBtn').classList.toggle('hidden', !state.mcqShuffled);
+      document.getElementById('mcqShuffledTag').classList.toggle('hidden', !isPractice || !state.mcqShuffled);
+
       document.getElementById('examSetupControls').classList.toggle('hidden', isPractice || state.examActive);
       document.getElementById('examLiveStatus').classList.toggle('hidden', isPractice || !state.examActive);
       document.getElementById('examNavigatorBox').classList.toggle('hidden', isPractice || !state.examActive);
       document.getElementById('mcqFlagBtn').classList.toggle('hidden', isPractice || !state.examActive);
+      document.getElementById('mcqRandomJumpBtn').classList.toggle('hidden', !isPractice || deck.cards.length < 2);
 
       const emptyBox = document.getElementById('mcqEmptyBox');
       const cardContainer = document.getElementById('mcqCardContainer');
@@ -1117,7 +1143,7 @@
       cardContainer.classList.remove('hidden');
 
       if (state.mcqOrder.length !== deck.cards.length && isPractice) {
-        initMcqSession(false);
+        initMcqSession(state.mcqShuffled);
       }
       if (state.mcqIndex >= state.mcqOrder.length) state.mcqIndex = 0;
 
@@ -1326,7 +1352,7 @@
       });
     }
 
-    // FLEXIBLE JSON BULK PARSER (ALSO EXTRACTS OPTIONAL TOP-LEVEL TITLE)
+    // FLEXIBLE JSON BULK PARSER
     let validatedImportCards = [];
     let detectedJsonTitle = '';
 
@@ -1475,7 +1501,6 @@
       const select = document.getElementById('bulkDeckSelect');
       select.innerHTML = '';
 
-      // Default to creating a brand-new set based on the JSON file name
       const newOpt = document.createElement('option');
       newOpt.value = '__new__';
       newOpt.textContent = '+ Create New Question Set (From JSON Name)';
@@ -1666,6 +1691,7 @@
         state.fcIndex = 0;
         state.fcFlipped = false;
         renderFlashcards();
+        showToast(`Shuffled "${deck.title}"`);
       };
 
       document.getElementById('fcResetBtn').onclick = () => {
@@ -1673,6 +1699,34 @@
         deck.cards.forEach(c => c.mastery = 0);
         saveState();
         renderAll();
+      };
+
+      // Deck-specific MCQ Shuffle & Random Jump buttons
+      document.getElementById('mcqShuffleDeckBtn').onclick = () => {
+        const deck = getActiveDeck();
+        if (!deck.cards.length) return;
+        initMcqSession(true);
+        renderMcq();
+        showToast(`Shuffled questions in "${deck.title}"`);
+      };
+
+      document.getElementById('mcqOrderedDeckBtn').onclick = () => {
+        initMcqSession(false);
+        renderMcq();
+        showToast('Restored original question order');
+      };
+
+      document.getElementById('mcqRandomJumpBtn').onclick = () => {
+        const total = state.mcqOrder.length;
+        if (total < 2) return;
+        let nextPos = state.mcqIndex;
+        while (nextPos === state.mcqIndex) {
+          nextPos = Math.floor(Math.random() * total);
+        }
+        state.mcqIndex = nextPos;
+        const cardIdx = state.mcqOrder[nextPos];
+        delete state.mcqAnswers[cardIdx];
+        renderMcq();
       };
 
       document.getElementById('mcqPracticeTab').onclick = () => {
@@ -1713,6 +1767,7 @@
         } else if (state.mcqSubMode === 'practice') {
           initMcqSession(true);
           renderMcq();
+          showToast('Completed set — reshuffled for another round!');
         }
       };
 
@@ -1728,7 +1783,6 @@
 
       document.getElementById('bulkJsonInput').addEventListener('input', updateBulkValidationUI);
 
-      // Auto-populate the new question set name directly from the uploaded .json filename
       document.getElementById('bulkJsonFileInput').addEventListener('change', e => {
         const file = e.target.files[0];
         if (!file) return;
