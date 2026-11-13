@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Flashkard</title>
@@ -247,7 +244,7 @@
           </div>
         </div>
 
-        <!-- Unanswered Questions Review Banner (Appears when looping back to blank questions) -->
+        <!-- Unanswered Questions Review Banner -->
         <div id="quizBlankAlertBanner" class="hidden p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700 flex items-center justify-between gap-3 text-xs">
           <div class="flex items-center gap-2 text-amber-900 dark:text-amber-200 font-semibold">
             <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -384,7 +381,7 @@
     </button>
   </nav>
 
-  <!-- MODAL 0: START A QUIZ (SINGLE SET OR 100-ITEM FOLDER LONG QUIZ) -->
+  <!-- MODAL 0: START A QUIZ -->
   <div id="quizSetupModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
     <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
@@ -395,7 +392,6 @@
         <button onclick="closeModal('quizSetupModal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">&times;</button>
       </div>
 
-      <!-- Scope Type Tabs -->
       <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
         <button id="quizTypeSetBtn" type="button" class="py-2 px-3 rounded-lg text-xs font-bold transition bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm">
           Single Question Set
@@ -405,7 +401,6 @@
         </button>
       </div>
 
-      <!-- Option A: Specific Question Set -->
       <div id="quizSetOptionsWrap" class="space-y-3 text-xs sm:text-sm">
         <div>
           <label class="block text-xs font-semibold mb-1">Select Question Set</label>
@@ -431,7 +426,6 @@
         </div>
       </div>
 
-      <!-- Option B: 100-Question Folder Long Quiz -->
       <div id="quizFolderOptionsWrap" class="hidden space-y-3 text-xs sm:text-sm">
         <div>
           <label class="block text-xs font-semibold mb-1">Select Subject Folder (Pulls randomly from this folder only)</label>
@@ -632,10 +626,10 @@
         cards: [
           {
             id: 'ece-1',
-            question: 'What is the thermal voltage Vt of a silicon diode at room temperature (300 K)?',
+            question: 'What is the thermal voltage Vₜ of a silicon diode at room temperature (300 K)?',
             answer: '25.85 mV',
             choices: ['25.85 mV', '26.0 V', '0.70 V', '13.8 mV'],
-            formula: 'Vt = kT / q = (1.38e-23 * 300) / 1.6e-19 = 25.85 mV',
+            formula: 'Vₜ = kT / q = (1.38 × 10⁻²³ · 300) / (1.6 × 10⁻¹⁹) = 25.85 mV',
             tag: 'Electronics',
             mastery: 0
           }
@@ -676,20 +670,104 @@
 
     const SAMPLE_JSON_OBJ = [
       {
-        question: 'What is the thermal voltage Vt at room temperature (300 K)?',
+        question: 'What is the thermal voltage Vₜ at room temperature (300 K)?',
         answer: '25.85 mV',
         choices: ['25.85 mV', '26.0 V', '0.70 V', '13.8 mV'],
-        solution: 'Vt = kT/q = (1.38e-23 * 300) / 1.6e-19 = 25.85 mV',
+        solution: 'Vₜ = kT/q = (1.38 × 10⁻²³ · 300) / (1.6 × 10⁻¹⁹) = 25.85 mV',
         tag: 'Electronics'
       }
     ];
 
     const JSON_SCHEMA_TEMPLATE = [
       'Convert the reviewer notes into a valid JSON array.',
-      'IMPORTANT: Do NOT use LaTeX, $ symbols, or \\text{} commands. Use plain Unicode symbols (Ω, °C, ×, ·, ρ, α, μ, ², ³) instead.',
+      'IMPORTANT: Do NOT use LaTeX, $ symbols, or \\text{} commands. Use plain Unicode symbols (Ω, ±, °C, ×, ·, ρ, α, μ, ², ³) instead.',
       'Output ONLY valid JSON following this exact format:',
       JSON.stringify(SAMPLE_JSON_OBJ, null, 2)
     ].join('\n\n');
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function cleanMathText(str) {
+      const supMap = {
+        '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+        '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+        '+': '⁺', '-': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', 'n': 'ⁿ', 'i': 'ⁱ'
+      };
+      const subMap = {
+        '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+        '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+        '+': '₊', '-': '₋', '=': '₌', '(': '₍', ')': '₎',
+        'a': 'ₐ', 'e': 'ₑ', 'h': 'ₕ', 'i': 'ᵢ', 'j': 'ⱼ',
+        'k': 'ₖ', 'l': 'ₗ', 'm': 'ₘ', 'n': 'ₙ', 'o': 'ₒ',
+        'p': 'ₚ', 'r': 'ᵣ', 's': 'ₛ', 't': 'ₜ', 'u': 'ᵤ',
+        'v': 'ᵥ', 'x': 'ₓ'
+      };
+      const toSup = s => s.split('').map(c => supMap[c] || c).join('');
+      const toSub = s => s.split('').map(c => subMap[c.toLowerCase()] || c).join('');
+
+      return String(str || '')
+        .replace(/\\text\{\s*\}/g, ' ')
+        .replace(/\\(?:text|mathrm|mathbf|mathit)\{([^}]*)\}/g, '$1')
+        .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '($1/$2)')
+        .replace(/\\sqrt\{([^}]*)\}/g, '√($1)')
+        .replace(/\\pm/g, '±')
+        .replace(/\\%/g, '%')
+        .replace(/\\div/g, '÷')
+        .replace(/\\infty/g, '∞')
+        .replace(/\\Omega/g, 'Ω')
+        .replace(/\\omega/g, 'ω')
+        .replace(/\\circ/g, '°')
+        .replace(/\\times/g, '×')
+        .replace(/\\cdot/g, '·')
+        .replace(/\\rho/g, 'ρ')
+        .replace(/\\alpha/g, 'α')
+        .replace(/\\beta/g, 'β')
+        .replace(/\\gamma/g, 'γ')
+        .replace(/\\theta/g, 'θ')
+        .replace(/\\phi/g, 'φ')
+        .replace(/\\lambda/g, 'λ')
+        .replace(/\\mu/g, 'μ')
+        .replace(/\\pi/g, 'π')
+        .replace(/\\sigma/g, 'σ')
+        .replace(/\\tau/g, 'τ')
+        .replace(/\\Delta/g, 'Δ')
+        .replace(/\\Sigma/g, 'Σ')
+        .replace(/\\sum/g, '∑')
+        .replace(/\\int/g, '∫')
+        .replace(/\\leq/g, '≤')
+        .replace(/\\geq/g, '≥')
+        .replace(/\\neq/g, '≠')
+        .replace(/\\approx/g, '≈')
+        .replace(/\^\{([^}]+)\}/g, (_, g) => toSup(g))
+        .replace(/\^([0-9+\-ni]+)/g, (_, g) => toSup(g))
+        .replace(/_\{([^}]+)\}/g, (_, g) => toSub(g))
+        .replace(/_([A-Za-z0-9]+)/g, (_, g) => toSub(g))
+        .replace(/\\([a-zA-Z]+)/g, '$1')
+        .replace(/\\([%$&#_{}])/g, '$1')
+        .replace(/\$([^$]+)\$/g, '$1')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+    }
+
+    function sanitizeDeckList(decks) {
+      return decks.map(d => ({
+        ...d,
+        folderId: d.folderId || '',
+        cards: (d.cards || []).map(c => ({
+          ...c,
+          question: cleanMathText(c.question),
+          answer: cleanMathText(c.answer),
+          formula: cleanMathText(c.formula),
+          choices: Array.isArray(c.choices) ? c.choices.map(cleanMathText) : []
+        }))
+      }));
+    }
 
     function showToast(msg, isError = false) {
       const el = document.getElementById('toastBanner');
@@ -825,7 +903,7 @@
         updateCloudStatusUI('ok');
         if (data && Array.isArray(data.decks) && data.decks.length > 0) {
           state.folders = Array.isArray(data.folders) ? data.folders : [];
-          state.decks = data.decks.map(d => ({   ...d,   folderId: d.folderId || '',   cards: (d.cards || []).map(c => ({     ...c,     question: cleanMathText(c.question),     answer: cleanMathText(c.answer),     formula: cleanMathText(c.formula),     choices: Array.isArray(c.choices) ? c.choices.map(cleanMathText) : []   })) }));
+          state.decks = sanitizeDeckList(data.decks);
           if (!state.decks.some(d => d.id === state.activeDeckId)) {
             state.activeDeckId = state.decks[0].id;
           }
@@ -865,7 +943,7 @@
           const saved = JSON.parse(raw);
           if (Array.isArray(saved.decks) && saved.decks.length > 0) {
             state.folders = Array.isArray(saved.folders) ? saved.folders : [];
-            state.decks = saved.decks.map(d => ({   ...d,   folderId: d.folderId || '',   cards: (d.cards || []).map(c => ({     ...c,     question: cleanMathText(c.question),     answer: cleanMathText(c.answer),     formula: cleanMathText(c.formula),     choices: Array.isArray(c.choices) ? c.choices.map(cleanMathText) : []   })) }));
+            state.decks = sanitizeDeckList(saved.decks);
             state.activeDeckId = saved.activeDeckId || saved.decks[0].id;
             state.todayCount = saved.todayCount || 0;
             state.streak = saved.streak || 1;
@@ -1270,7 +1348,6 @@
       });
     }
 
-    // START A QUIZ MODAL LOGIC
     function openQuizSetupModal(defaultScope = 'set', preselectFolderId = '') {
       quizSetupMode = defaultScope;
 
@@ -1638,7 +1715,6 @@
       const blanks = !isPractice && state.quizActive ? getUnansweredQuizIndices() : [];
       const allAnswered = !isPractice && state.quizActive && blanks.length === 0;
 
-      // Blank Review Banner (only while blanks > 0)
       const blankBanner = document.getElementById('quizBlankAlertBanner');
       if (!isPractice && state.quizActive && state.quizReviewingBlanks && blanks.length > 0) {
         blankBanner.classList.remove('hidden');
@@ -1649,7 +1725,6 @@
         blankBanner.classList.add('hidden');
       }
 
-      // All Answered Ready Banner & Finalize Buttons (ONLY visible when 100% of questions are answered)
       document.getElementById('quizAllAnsweredBanner').classList.toggle('hidden', !allAnswered);
       document.getElementById('finishQuizBtn').classList.toggle('hidden', !allAnswered);
 
@@ -1658,8 +1733,6 @@
       document.getElementById('mcqTopicBadge').textContent = card.tag || 'General';
       document.getElementById('mcqQuestionText').textContent = card.question;
 
-      // Bottom navigation buttons:
-      // When ALL questions are answered (0 blanks), show "Finalize & Review Score" directly instead of advancing to #23
       const nextBtn = document.getElementById('mcqNextBtn');
       const finalizeBottomBtn = document.getElementById('mcqFinalizeBottomBtn');
 
@@ -1821,7 +1894,6 @@
       });
     }
 
-    // FLEXIBLE JSON BULK PARSER
     let validatedImportCards = [];
     let detectedJsonTitle = '';
 
@@ -2040,75 +2112,6 @@
       document.getElementById('sidebarBackdrop').classList.add('hidden');
     }
 
-    function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
-    function cleanMathText(str) {
-      const supMap = {
-        '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
-        '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
-        '+': '⁺', '-': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', 'n': 'ⁿ', 'i': 'ⁱ'
-      };
-      const subMap = {
-        '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
-        '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
-        '+': '₊', '-': '₋', '=': '₌', '(': '₍', ')': '₎',
-        'a': 'ₐ', 'e': 'ₑ', 'h': 'ₕ', 'i': 'ᵢ', 'j': 'ⱼ',
-        'k': 'ₖ', 'l': 'ₗ', 'm': 'ₘ', 'n': 'ₙ', 'o': 'ₒ',
-        'p': 'ₚ', 'r': 'ᵣ', 's': 'ₛ', 't': 'ₜ', 'u': 'ᵤ',
-        'v': 'ᵥ', 'x': 'ₓ'
-      };
-      const toSup = s => s.split('').map(c => supMap[c] || c).join('');
-      const toSub = s => s.split('').map(c => subMap[c.toLowerCase()] || c).join('');
-
-      return String(str || '')
-        .replace(/\\text\{\s*\}/g, ' ')
-        .replace(/\\(?:text|mathrm|mathbf|mathit)\{([^}]*)\}/g, '$1')
-        .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '($1/$2)')
-        .replace(/\\sqrt\{([^}]*)\}/g, '√($1)')
-        .replace(/\\pm/g, '±')
-        .replace(/\\%/g, '%')
-        .replace(/\\div/g, '÷')
-        .replace(/\\infty/g, '∞')
-        .replace(/\\Omega/g, 'Ω')
-        .replace(/\\omega/g, 'ω')
-        .replace(/\\circ/g, '°')
-        .replace(/\\times/g, '×')
-        .replace(/\\cdot/g, '·')
-        .replace(/\\rho/g, 'ρ')
-        .replace(/\\alpha/g, 'α')
-        .replace(/\\beta/g, 'β')
-        .replace(/\\gamma/g, 'γ')
-        .replace(/\\theta/g, 'θ')
-        .replace(/\\phi/g, 'φ')
-        .replace(/\\lambda/g, 'λ')
-        .replace(/\\mu/g, 'μ')
-        .replace(/\\pi/g, 'π')
-        .replace(/\\sigma/g, 'σ')
-        .replace(/\\tau/g, 'τ')
-        .replace(/\\Delta/g, 'Δ')
-        .replace(/\\Sigma/g, 'Σ')
-        .replace(/\\sum/g, '∑')
-        .replace(/\\int/g, '∫')
-        .replace(/\\leq/g, '≤')
-        .replace(/\\geq/g, '≥')
-        .replace(/\\neq/g, '≠')
-        .replace(/\\approx/g, '≈')
-        .replace(/\^\{([^}]+)\}/g, (_, g) => toSup(g))
-        .replace(/\^([0-9+\-ni]+)/g, (_, g) => toSup(g))
-        .replace(/_\{([^}]+)\}/g, (_, g) => toSub(g))
-        .replace(/_([A-Za-z0-9]+)/g, (_, g) => toSub(g))
-        .replace(/\\([a-zA-Z]+)/g, '$1')
-        .replace(/\\([%$&#_{}])/g, '$1')
-        .replace(/\$([^$]+)\$/g, '$1')
-        .replace(/\s{2,}/g, ' ')
-        .trim();
-    }
-
     function renderAll() {
       applyTheme();
       renderSidebar();
@@ -2181,7 +2184,6 @@
         }
       };
 
-      // Start a Quiz Modal Controls
       document.getElementById('openQuizSetupTopBtn').onclick = () => openQuizSetupModal('set');
       document.getElementById('quizTypeSetBtn').onclick = () => switchQuizSetupTab('set');
       document.getElementById('quizTypeFolderBtn').onclick = () => switchQuizSetupTab('folder');
@@ -2350,7 +2352,6 @@
           return;
         }
 
-        // Quiz Mode: Loop through ALL remaining blank questions; once 0 blanks remain, go straight to score & answer review
         if (state.quizActive) {
           const blanks = getUnansweredQuizIndices();
 
@@ -2468,13 +2469,13 @@
 
       document.getElementById('addCardBtn').onclick = () => openCardModal(null);
       document.getElementById('saveCardBtn').onclick = () => {
-        const question = document.getElementById('cardQuestionInput').value.trim();
-        const answer = document.getElementById('cardAnswerInput').value.trim();
+        const question = cleanMathText(document.getElementById('cardQuestionInput').value.trim());
+        const answer = cleanMathText(document.getElementById('cardAnswerInput').value.trim());
         if (!question || !answer) { alert('Question and Correct Answer are required.'); return; }
-        const w1 = document.getElementById('cardWrong1Input').value.trim();
-        const w2 = document.getElementById('cardWrong2Input').value.trim();
-        const w3 = document.getElementById('cardWrong3Input').value.trim();
-        const formula = document.getElementById('cardFormulaInput').value.trim();
+        const w1 = cleanMathText(document.getElementById('cardWrong1Input').value.trim());
+        const w2 = cleanMathText(document.getElementById('cardWrong2Input').value.trim());
+        const w3 = cleanMathText(document.getElementById('cardWrong3Input').value.trim());
+        const formula = cleanMathText(document.getElementById('cardFormulaInput').value.trim());
         const tag = document.getElementById('cardTagInput').value.trim() || 'General';
         const choices = [answer, w1, w2, w3].filter(Boolean);
 
@@ -2502,7 +2503,6 @@
       document.getElementById('openSyncBtn').onclick = openSyncModal;
       document.getElementById('openShortcutsBtn').onclick = () => openModal('shortcutsModal');
 
-      // Cloud Sync Modal Buttons
       document.getElementById('connectCloudBtn').onclick = async () => {
         const url = document.getElementById('firebaseUrlInput').value.trim().replace(/\/+$/, '');
         const room = document.getElementById('firebaseRoomInput').value.trim().replace(/[^a-zA-Z0-9_-]/g, '');
@@ -2555,8 +2555,8 @@
             const data = JSON.parse(ev.target.result);
             if (Array.isArray(data.decks) && data.decks.length) {
               state.folders = Array.isArray(data.folders) ? data.folders : [];
-              state.decks = data.decks;
-              state.activeDeckId = data.decks[0].id;
+              state.decks = sanitizeDeckList(data.decks);
+              state.activeDeckId = state.decks[0].id;
               resetSessionPointers();
               saveState();
               renderAll();
