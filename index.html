@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Flashkard</title>
@@ -683,6 +686,7 @@
 
     const JSON_SCHEMA_TEMPLATE = [
       'Convert the reviewer notes into a valid JSON array.',
+      'IMPORTANT: Do NOT use LaTeX, $ symbols, or \\text{} commands. Use plain Unicode symbols (Ω, °C, ×, ·, ρ, α, μ, ², ³) instead.',
       'Output ONLY valid JSON following this exact format:',
       JSON.stringify(SAMPLE_JSON_OBJ, null, 2)
     ].join('\n\n');
@@ -821,7 +825,7 @@
         updateCloudStatusUI('ok');
         if (data && Array.isArray(data.decks) && data.decks.length > 0) {
           state.folders = Array.isArray(data.folders) ? data.folders : [];
-          state.decks = data.decks.map(d => ({ ...d, folderId: d.folderId || '' }));
+          state.decks = data.decks.map(d => ({   ...d,   folderId: d.folderId || '',   cards: (d.cards || []).map(c => ({     ...c,     question: cleanMathText(c.question),     answer: cleanMathText(c.answer),     formula: cleanMathText(c.formula),     choices: Array.isArray(c.choices) ? c.choices.map(cleanMathText) : []   })) }));
           if (!state.decks.some(d => d.id === state.activeDeckId)) {
             state.activeDeckId = state.decks[0].id;
           }
@@ -861,7 +865,7 @@
           const saved = JSON.parse(raw);
           if (Array.isArray(saved.decks) && saved.decks.length > 0) {
             state.folders = Array.isArray(saved.folders) ? saved.folders : [];
-            state.decks = saved.decks.map(d => ({ ...d, folderId: d.folderId || '' }));
+            state.decks = saved.decks.map(d => ({   ...d,   folderId: d.folderId || '',   cards: (d.cards || []).map(c => ({     ...c,     question: cleanMathText(c.question),     answer: cleanMathText(c.answer),     formula: cleanMathText(c.formula),     choices: Array.isArray(c.choices) ? c.choices.map(cleanMathText) : []   })) }));
             state.activeDeckId = saved.activeDeckId || saved.decks[0].id;
             state.todayCount = saved.todayCount || 0;
             state.streak = saved.streak || 1;
@@ -1916,10 +1920,10 @@
 
         cards.push({
           id: 'imp-' + Date.now() + '-' + i + '-' + Math.random().toString(36).slice(2, 6),
-          question,
-          answer,
-          choices: finalChoices,
-          formula: solution,
+          question: cleanMathText(question),
+          answer: cleanMathText(answer),
+          choices: finalChoices.map(cleanMathText),
+          formula: cleanMathText(solution),
           tag,
           mastery: 0
         });
@@ -2042,6 +2046,32 @@
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
+    }
+    function cleanMathText(str) {
+      return String(str || '')
+        .replace(/\\text\{\s*\}/g, ' ')
+        .replace(/\\text\{([^}]*)\}/g, '$1')
+        .replace(/\\Omega/g, 'Ω')
+        .replace(/\\circ/g, '°')
+        .replace(/\\times/g, '×')
+        .replace(/\\cdot/g, '·')
+        .replace(/\\rho/g, 'ρ')
+        .replace(/\\alpha/g, 'α')
+        .replace(/\\beta/g, 'β')
+        .replace(/\\theta/g, 'θ')
+        .replace(/\\mu/g, 'μ')
+        .replace(/\\pi/g, 'π')
+        .replace(/\\Delta/g, 'Δ')
+        .replace(/\\leq/g, '≤')
+        .replace(/\\geq/g, '≥')
+        .replace(/\\neq/g, '≠')
+        .replace(/\\approx/g, '≈')
+        .replace(/\\sqrt\{([^}]*)\}/g, '√($1)')
+        .replace(/\^\{([^}]*)\}/g, '^$1')
+        .replace(/_\{([^}]*)\}/g, '_$1')
+        .replace(/\$([^$]+)\$/g, '$1')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
     }
 
     function renderAll() {
