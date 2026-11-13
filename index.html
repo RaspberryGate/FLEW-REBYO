@@ -232,7 +232,7 @@
             </button>
           </div>
 
-          <!-- Quiz Setup Trigger (When in Quiz Tab & not currently running) -->
+          <!-- Quiz Setup Trigger -->
           <div id="quizSetupControls" class="hidden flex items-center gap-2">
             <button onclick="openQuizSetupModal()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold">Configure &amp; Start Quiz</button>
           </div>
@@ -241,8 +241,28 @@
           <div id="quizLiveStatus" class="hidden flex items-center gap-2 sm:gap-3 text-xs font-bold">
             <span id="quizScopePill" class="hidden sm:inline-block px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 truncate max-w-[180px]">Quiz</span>
             <span class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-mono" id="quizTimerText">15:00</span>
-            <button id="finishQuizBtn" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold">Submit &amp; See Results</button>
+            <button id="finishQuizBtn" class="hidden px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition">Finalize &amp; Review Score</button>
           </div>
+        </div>
+
+        <!-- Unanswered Questions Review Banner (Appears when looping back to blank questions) -->
+        <div id="quizBlankAlertBanner" class="hidden p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700 flex items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2 text-amber-900 dark:text-amber-200 font-semibold">
+            <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span id="quizBlankAlertText">Reviewing unanswered questions — all items must be answered before finalizing.</span>
+          </div>
+          <span id="quizBlankCountPill" class="px-2.5 py-1 rounded-lg bg-amber-200/80 dark:bg-amber-900 text-amber-900 dark:text-amber-100 font-bold shrink-0">0 Blank</span>
+        </div>
+
+        <!-- All Questions Answered Ready Banner -->
+        <div id="quizAllAnsweredBanner" class="hidden p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 flex items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2 text-emerald-900 dark:text-emerald-200 font-semibold">
+            <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>All questions are answered! You can now finalize and review your score &amp; all answers.</span>
+          </div>
+          <button onclick="finishQuizAndShowResults(false)" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold shrink-0 shadow-sm transition">
+            Finalize &amp; Review Score
+          </button>
         </div>
 
         <div id="mcqEmptyBox" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 text-center">
@@ -254,6 +274,7 @@
             <div class="flex items-center gap-2">
               <span id="mcqCounterBadge" class="font-bold text-indigo-600 dark:text-indigo-400">Question 1 of 6</span>
               <span id="mcqShuffledTag" class="hidden px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold">Randomized</span>
+              <span id="mcqBlankStatusTag" class="hidden px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-[10px] font-bold">Unanswered</span>
             </div>
             <div class="flex items-center gap-2">
               <span id="mcqSourceDeckBadge" class="hidden px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50 font-semibold">Set Name</span>
@@ -273,17 +294,25 @@
             <p id="mcqSolutionText" class="text-slate-700 dark:text-slate-200 leading-relaxed"></p>
           </div>
 
-          <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
             <button id="mcqPrevBtn" class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800">Previous</button>
             <span class="text-[11px] text-slate-400 hidden sm:inline">Keys: A, B, C, D to answer &bull; Enter for Next</span>
-            <button id="mcqNextBtn" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold">Next Question</button>
+            <div class="flex items-center gap-2">
+              <button id="mcqNextBtn" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition">Next Question</button>
+              <button id="mcqFinalizeBottomBtn" class="hidden px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition">Finalize &amp; Review Score</button>
+            </div>
           </div>
         </div>
 
         <!-- Quiz Question Navigator -->
-        <div id="quizNavigatorBox" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4">
-          <div class="flex items-center justify-between mb-2.5">
-            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Question Navigator</p>
+        <div id="quizNavigatorBox" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Question Navigator</p>
+              <button id="jumpNextBlankBtn" type="button" class="hidden px-2.5 py-0.5 rounded-md bg-amber-100 hover:bg-amber-200 dark:bg-amber-950 dark:hover:bg-amber-900 text-amber-800 dark:text-amber-200 text-[11px] font-bold transition">
+                Jump to Next Blank &rarr;
+              </button>
+            </div>
             <p id="quizAnsweredProgressText" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">0 / 0 Answered</p>
           </div>
           <div id="quizNavGrid" class="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto"></div>
@@ -298,7 +327,6 @@
             <p id="reportScopeSummary" class="text-xs text-slate-500 dark:text-slate-400">Quiz Set: Sample Set</p>
           </div>
 
-          <!-- Per-Set Breakdown (Especially helpful for 100-Item Folder Long Quizzes) -->
           <div id="reportSetBreakdownBox" class="hidden p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2.5">
             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Score Breakdown by Question Set</h4>
             <div id="reportSetBreakdownList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs"></div>
@@ -312,10 +340,10 @@
 
           <div class="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <div class="flex items-center justify-between">
-              <h4 class="text-sm font-bold">Item-by-Item Results &amp; Solutions</h4>
+              <h4 class="text-sm font-bold">Item-by-Item Results &amp; Solutions (All Answers)</h4>
               <label class="inline-flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer">
                 <input id="filterWrongOnlyChk" type="checkbox" class="rounded text-indigo-600" />
-                <span>Show Incorrect / Unanswered Only</span>
+                <span>Show Incorrect Only</span>
               </label>
             </div>
             <div id="reportReviewList" class="space-y-3"></div>
@@ -360,7 +388,7 @@
       <div class="flex items-center justify-between">
         <div>
           <h3 class="text-base sm:text-lg font-bold">Start a Quiz</h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Choose a specific question set or take a 100-item folder long quiz</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400">All questions must be answered before finalizing &amp; reviewing score</p>
         </div>
         <button onclick="closeModal('quizSetupModal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">&times;</button>
       </div>
@@ -583,13 +611,13 @@
         <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800"><span>Flip Flashcard</span><kbd class="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 rounded">Space / Up / Down</kbd></div>
         <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800"><span>Rate Card</span><kbd class="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 rounded">1, 2, 3, 4</kbd></div>
         <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800"><span>Pick MCQ Choice</span><kbd class="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 rounded">A, B, C, D or 1-4</kbd></div>
-        <div class="flex justify-between py-1"><span>Next MCQ</span><kbd class="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 rounded">Enter / Right Arrow</kbd></div>
+        <div class="flex justify-between py-1"><span>Next / Finalize MCQ</span><kbd class="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 rounded">Enter / Right Arrow</kbd></div>
       </div>
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY = 'flashforge_board_studio_v9';
+    const STORAGE_KEY = 'flashforge_board_studio_v10';
     const CLOUD_CFG_KEY = 'flashforge_cloud_cfg_v1';
     const DEFAULT_FIREBASE_URL = 'https://review-d33bf-default-rtdb.asia-southeast1.firebasedatabase.app';
 
@@ -615,7 +643,7 @@
 
     let cloudConfig = { url: DEFAULT_FIREBASE_URL, room: '' };
     let draggedDeckId = null;
-    let quizSetupMode = 'set'; // 'set' | 'folder'
+    let quizSetupMode = 'set';
     let lastQuizConfig = null;
     let lastQuizReportData = null;
 
@@ -629,15 +657,15 @@
       todayCount: 0,
       streak: 1,
       darkMode: false,
-      mcqSubMode: 'practice', // 'practice' | 'quiz'
+      mcqSubMode: 'practice',
       mcqShuffled: false,
       mcqIndex: 0,
-      // Array of item objects: { card, deckId, deckTitle, key }
       mcqItems: [],
       mcqChoicesMap: {},
       mcqAnswers: {},
       mcqFlags: {},
       quizActive: false,
+      quizReviewingBlanks: false,
       quizLabel: '',
       quizIsFolderLong: false,
       quizSecondsLeft: 900,
@@ -685,6 +713,27 @@
         [copy[i], copy[j]] = [copy[j], copy[i]];
       }
       return copy;
+    }
+
+    function getUnansweredQuizIndices() {
+      const blanks = [];
+      state.mcqItems.forEach((it, idx) => {
+        if (state.mcqAnswers[it.key] === undefined) {
+          blanks.push(idx);
+        }
+      });
+      return blanks;
+    }
+
+    function findNextUnansweredIndex(fromPos) {
+      const total = state.mcqItems.length;
+      for (let offset = 1; offset <= total; offset++) {
+        const candidate = (fromPos + offset) % total;
+        if (state.mcqAnswers[state.mcqItems[candidate].key] === undefined) {
+          return candidate;
+        }
+      }
+      return -1;
     }
 
     function loadCloudConfig() {
@@ -804,6 +853,7 @@
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY)
+          || localStorage.getItem('flashforge_board_studio_v9')
           || localStorage.getItem('flashforge_board_studio_v8')
           || localStorage.getItem('flashforge_board_studio_v7')
           || localStorage.getItem('flashforge_board_studio_v6')
@@ -1080,6 +1130,7 @@
       state.fcFlipped = false;
       stopQuizTimer();
       state.quizActive = false;
+      state.quizReviewingBlanks = false;
       state.mcqSubMode = 'practice';
       state.mcqShuffled = false;
       document.getElementById('quizReportScreen').classList.add('hidden');
@@ -1209,6 +1260,7 @@
       state.mcqFlags = {};
       state.mcqChoicesMap = {};
       state.quizIsFolderLong = false;
+      state.quizReviewingBlanks = false;
 
       items.forEach(it => {
         state.mcqChoicesMap[it.key] = buildFourChoices(it.card, deck.cards);
@@ -1219,7 +1271,6 @@
     function openQuizSetupModal(defaultScope = 'set', preselectFolderId = '') {
       quizSetupMode = defaultScope;
 
-      // Populate Question Sets Dropdown
       const deckSel = document.getElementById('quizTargetDeckSelect');
       deckSel.innerHTML = '';
       state.decks.forEach(d => {
@@ -1231,7 +1282,6 @@
         deckSel.appendChild(opt);
       });
 
-      // Populate Folders Dropdown
       const folderSel = document.getElementById('quizTargetFolderSelect');
       folderSel.innerHTML = '';
       if (state.folders.length === 0) {
@@ -1352,6 +1402,7 @@
       state.mode = 'mcq';
       state.mcqSubMode = 'quiz';
       state.quizActive = true;
+      state.quizReviewingBlanks = false;
       state.quizLabel = label;
       state.quizIsFolderLong = isFolderLong;
       state.mcqItems = items;
@@ -1373,7 +1424,9 @@
       state.quizTimerHandle = setInterval(() => {
         state.quizSecondsLeft--;
         updateQuizTimerDisplay();
-        if (state.quizSecondsLeft <= 0) finishQuizAndShowResults();
+        if (state.quizSecondsLeft <= 0) {
+          finishQuizAndShowResults(true);
+        }
       }, 1000);
 
       closeModal('quizSetupModal');
@@ -1394,12 +1447,30 @@
       document.getElementById('quizTimerText').textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     }
 
-    function finishQuizAndShowResults() {
+    function redirectToFirstBlankQuestion() {
+      const blanks = getUnansweredQuizIndices();
+      if (!blanks.length) return false;
+      state.quizReviewingBlanks = true;
+      state.mcqIndex = blanks[0];
+      renderMcq();
+      const sampleNums = blanks.slice(0, 5).map(i => '#' + (i + 1)).join(', ');
+      const extra = blanks.length > 5 ? ` (+${blanks.length - 5} more)` : '';
+      showToast(`All questions must be answered! Returning to blank Question #${blanks[0] + 1} (${blanks.length} blank: ${sampleNums}${extra})`, true);
+      return true;
+    }
+
+    function finishQuizAndShowResults(forceTimeout = false) {
+      if (!forceTimeout) {
+        const hasBlanks = redirectToFirstBlankQuestion();
+        if (hasBlanks) return;
+      }
+
       stopQuizTimer();
       state.quizActive = false;
+      state.quizReviewingBlanks = false;
 
       let correct = 0;
-      const setStats = {}; // deckId -> { title, correct, total }
+      const setStats = {};
       const reviewItems = [];
 
       state.mcqItems.forEach((it, i) => {
@@ -1455,7 +1526,6 @@
       document.getElementById('reportDetailText').textContent = `${r.correct} out of ${r.total} items correct`;
       document.getElementById('reportScopeSummary').textContent = r.label;
 
-      // Per-Set Breakdown
       const breakdownBox = document.getElementById('reportSetBreakdownBox');
       const breakdownList = document.getElementById('reportSetBreakdownList');
       const statEntries = Object.values(r.setStats);
@@ -1505,6 +1575,8 @@
       document.getElementById('mcqCardContainer').classList.add('hidden');
       document.getElementById('quizNavigatorBox').classList.add('hidden');
       document.getElementById('quizLiveStatus').classList.add('hidden');
+      document.getElementById('quizBlankAlertBanner').classList.add('hidden');
+      document.getElementById('quizAllAnsweredBanner').classList.add('hidden');
       document.getElementById('quizReportScreen').classList.remove('hidden');
     }
 
@@ -1533,11 +1605,15 @@
       if (isPractice && !deck.cards.length) {
         emptyBox.classList.remove('hidden');
         cardContainer.classList.add('hidden');
+        document.getElementById('quizBlankAlertBanner').classList.add('hidden');
+        document.getElementById('quizAllAnsweredBanner').classList.add('hidden');
         return;
       }
       if (!isPractice && !state.quizActive && document.getElementById('quizReportScreen').classList.contains('hidden')) {
         emptyBox.classList.add('hidden');
         cardContainer.classList.add('hidden');
+        document.getElementById('quizBlankAlertBanner').classList.add('hidden');
+        document.getElementById('quizAllAnsweredBanner').classList.add('hidden');
         return;
       }
 
@@ -1556,10 +1632,55 @@
       const card = item.card;
       const choices = state.mcqChoicesMap[item.key] || buildFourChoices(card, state.mcqItems.map(x => x.card));
       const chosen = state.mcqAnswers[item.key];
+      const blanks = !isPractice && state.quizActive ? getUnansweredQuizIndices() : [];
+      const allAnswered = !isPractice && state.quizActive && blanks.length === 0;
+
+      // Blank Review Banner (only while blanks > 0)
+      const blankBanner = document.getElementById('quizBlankAlertBanner');
+      if (!isPractice && state.quizActive && state.quizReviewingBlanks && blanks.length > 0) {
+        blankBanner.classList.remove('hidden');
+        const listStr = blanks.slice(0, 8).map(i => '#' + (i + 1)).join(', ') + (blanks.length > 8 ? '...' : '');
+        document.getElementById('quizBlankAlertText').textContent = `Completing remaining blank items (${listStr}) — answer all to unlock Finalize.`;
+        document.getElementById('quizBlankCountPill').textContent = `${blanks.length} Blank Left`;
+      } else {
+        blankBanner.classList.add('hidden');
+      }
+
+      // All Answered Ready Banner & Finalize Buttons (ONLY visible when 100% of questions are answered)
+      document.getElementById('quizAllAnsweredBanner').classList.toggle('hidden', !allAnswered);
+      document.getElementById('finishQuizBtn').classList.toggle('hidden', !allAnswered);
 
       document.getElementById('mcqCounterBadge').textContent = `Question ${state.mcqIndex + 1} of ${state.mcqItems.length}`;
+      document.getElementById('mcqBlankStatusTag').classList.toggle('hidden', isPractice || chosen !== undefined);
       document.getElementById('mcqTopicBadge').textContent = card.tag || 'General';
       document.getElementById('mcqQuestionText').textContent = card.question;
+
+      // Bottom navigation buttons:
+      // When ALL questions are answered (0 blanks), show "Finalize & Review Score" directly instead of advancing to #23
+      const nextBtn = document.getElementById('mcqNextBtn');
+      const finalizeBottomBtn = document.getElementById('mcqFinalizeBottomBtn');
+
+      if (!isPractice && state.quizActive) {
+        if (allAnswered) {
+          nextBtn.classList.add('hidden');
+          finalizeBottomBtn.classList.remove('hidden');
+        } else {
+          nextBtn.classList.remove('hidden');
+          finalizeBottomBtn.classList.add('hidden');
+
+          if (state.quizReviewingBlanks) {
+            nextBtn.textContent = chosen === undefined ? 'Skip to Next Blank' : 'Next Blank Question';
+          } else if (state.mcqIndex === state.mcqItems.length - 1) {
+            nextBtn.textContent = `Review ${blanks.length} Blank Question(s)`;
+          } else {
+            nextBtn.textContent = 'Next Question';
+          }
+        }
+      } else {
+        nextBtn.classList.remove('hidden');
+        nextBtn.textContent = 'Next Question';
+        finalizeBottomBtn.classList.add('hidden');
+      }
 
       const sourceBadge = document.getElementById('mcqSourceDeckBadge');
       if (!isPractice && state.quizIsFolderLong) {
@@ -1618,6 +1739,8 @@
       if (!isPractice && state.quizActive) {
         const answeredCount = Object.keys(state.mcqAnswers).length;
         document.getElementById('quizAnsweredProgressText').textContent = `${answeredCount} / ${state.mcqItems.length} Answered`;
+        document.getElementById('jumpNextBlankBtn').classList.toggle('hidden', blanks.length === 0);
+
         const grid = document.getElementById('quizNavGrid');
         grid.innerHTML = '';
         state.mcqItems.forEach((navItem, pos) => {
@@ -1629,8 +1752,9 @@
             (current ? 'ring-2 ring-indigo-500 ' : '') +
             (flagged ? 'bg-amber-100 border-amber-400 text-amber-800 dark:bg-amber-950 dark:text-amber-200'
               : answered ? 'bg-indigo-600 border-indigo-600 text-white'
-              : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700');
+              : 'bg-slate-50 dark:bg-slate-800 border-amber-400/70 dark:border-amber-600/70 text-slate-600 dark:text-slate-300');
           b.textContent = pos + 1;
+          b.title = answered ? `Question ${pos + 1} (Answered)` : `Question ${pos + 1} (Blank)`;
           b.onclick = () => { state.mcqIndex = pos; renderMcq(); };
           grid.appendChild(b);
         });
@@ -2025,11 +2149,21 @@
       document.getElementById('backToPracticeBtn').onclick = () => {
         stopQuizTimer();
         state.quizActive = false;
+        state.quizReviewingBlanks = false;
         state.mcqSubMode = 'practice';
         document.getElementById('quizReportScreen').classList.add('hidden');
         document.getElementById('mcqCardContainer').classList.remove('hidden');
         initPracticeMcqSession(false);
         renderMcq();
+      };
+
+      document.getElementById('jumpNextBlankBtn').onclick = () => {
+        const nextBlank = findNextUnansweredIndex(state.mcqIndex);
+        if (nextBlank !== -1) {
+          state.quizReviewingBlanks = true;
+          state.mcqIndex = nextBlank;
+          renderMcq();
+        }
       };
 
       const fcEl = document.getElementById('flashcardEl');
@@ -2109,6 +2243,7 @@
       document.getElementById('mcqPracticeTab').onclick = () => {
         stopQuizTimer();
         state.quizActive = false;
+        state.quizReviewingBlanks = false;
         state.mcqSubMode = 'practice';
         document.getElementById('quizReportScreen').classList.add('hidden');
         document.getElementById('mcqCardContainer').classList.remove('hidden');
@@ -2124,7 +2259,8 @@
         renderMcq();
       };
 
-      document.getElementById('finishQuizBtn').onclick = finishQuizAndShowResults;
+      document.getElementById('finishQuizBtn').onclick = () => finishQuizAndShowResults(false);
+      document.getElementById('mcqFinalizeBottomBtn').onclick = () => finishQuizAndShowResults(false);
 
       document.getElementById('mcqFlagBtn').onclick = () => {
         const item = state.mcqItems[state.mcqIndex];
@@ -2138,16 +2274,41 @@
       };
 
       document.getElementById('mcqNextBtn').onclick = () => {
-        if (state.mcqIndex < state.mcqItems.length - 1) {
-          state.mcqIndex++;
-          renderMcq();
-        } else if (state.mcqSubMode === 'practice') {
-          initPracticeMcqSession(true);
-          renderMcq();
-          showToast('Completed set — reshuffled for another round!');
-        } else if (state.quizActive) {
-          if (confirm('You reached the last question. Submit quiz and view results?')) {
-            finishQuizAndShowResults();
+        if (state.mcqSubMode === 'practice') {
+          if (state.mcqIndex < state.mcqItems.length - 1) {
+            state.mcqIndex++;
+            renderMcq();
+          } else {
+            initPracticeMcqSession(true);
+            renderMcq();
+            showToast('Completed set — reshuffled for another round!');
+          }
+          return;
+        }
+
+        // Quiz Mode: Loop through ALL remaining blank questions; once 0 blanks remain, go straight to score & answer review
+        if (state.quizActive) {
+          const blanks = getUnansweredQuizIndices();
+
+          if (blanks.length === 0) {
+            finishQuizAndShowResults(false);
+            return;
+          }
+
+          if (state.quizReviewingBlanks) {
+            const nextBlank = findNextUnansweredIndex(state.mcqIndex);
+            if (nextBlank !== -1) {
+              state.mcqIndex = nextBlank;
+              renderMcq();
+            }
+            return;
+          }
+
+          if (state.mcqIndex < state.mcqItems.length - 1) {
+            state.mcqIndex++;
+            renderMcq();
+          } else {
+            redirectToFirstBlankQuestion();
           }
         }
       };
@@ -2362,7 +2523,12 @@
             const choices = item ? (state.mcqChoicesMap[item.key] || []) : [];
             if (choices[map[k]]) handleSelectMcq(choices[map[k]]);
           } else if (e.key === 'Enter' || e.key === 'ArrowRight') {
-            document.getElementById('mcqNextBtn').click();
+            const finBtn = document.getElementById('mcqFinalizeBottomBtn');
+            if (!finBtn.classList.contains('hidden')) {
+              finBtn.click();
+            } else {
+              document.getElementById('mcqNextBtn').click();
+            }
           }
         }
       });
