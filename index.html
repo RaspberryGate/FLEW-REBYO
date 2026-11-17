@@ -1982,7 +1982,7 @@
         ).trim();
 
         let answer = String(
-          item.answer ?? item.back ?? item.correct ?? item.correct_answer ?? item.correctAnswer ?? item.a ?? ''
+          item.answer ?? item.back ?? item.correct ?? item.correct_answer ?? item.correctAnswer ?? item.correct_option_id ?? item.a ?? ''
         ).trim();
 
         const rawOptions = item.choices ?? item.options ?? item.distractors ?? item.answers ?? [];
@@ -1994,9 +1994,10 @@
             if (s) choiceSet.add(s);
           });
         } else if (rawOptions && typeof rawOptions === 'object') {
-          const letterKey = answer.toUpperCase().replace(/[^A-D]/g, '');
-          if (letterKey && rawOptions[letterKey]) {
-            answer = String(rawOptions[letterKey]).trim();
+          const letterKey = answer.replace(/[^a-dA-D]/g, '');
+          const matchedKey = Object.keys(rawOptions).find(k => k.toLowerCase() === letterKey.toLowerCase());
+          if (matchedKey) {
+            answer = String(rawOptions[matchedKey]).trim();
           } else if (rawOptions[answer]) {
             answer = String(rawOptions[answer]).trim();
           }
