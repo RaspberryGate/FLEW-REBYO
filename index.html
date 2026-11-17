@@ -258,6 +258,17 @@
           </div>
         </div>
 
+        <!-- Temporary AI Modified Set Banner -->
+        <div id="tempAiSetBanner" class="hidden p-3.5 rounded-2xl bg-violet-50 dark:bg-violet-950/60 border border-violet-300 dark:border-violet-700 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-2 text-violet-900 dark:text-violet-200 font-semibold">
+            <svg class="w-4 h-4 text-violet-600 dark:text-violet-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span id="tempAiSetBannerText">Temporary AI-modified question set active (original deck is untouched).</span>
+          </div>
+          <button id="revertTempAiSetBtn" type="button" class="px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-bold shrink-0 shadow-sm transition">
+            Revert to Original Set
+          </button>
+        </div>
+
         <!-- Unanswered Questions Review Banner -->
         <div id="quizBlankAlertBanner" class="hidden p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700 flex items-center justify-between gap-3 text-xs">
           <div class="flex items-center gap-2 text-amber-900 dark:text-amber-200 font-semibold">
@@ -293,11 +304,14 @@
               <span id="mcqShuffledTag" class="hidden px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold">Randomized</span>
               <span id="mcqBlankStatusTag" class="hidden px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-[10px] font-bold">Unanswered</span>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 flex-wrap">
               <span id="mcqSourceDeckBadge" class="hidden px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50 font-semibold">Set Name</span>
               <span id="mcqTopicBadge" class="px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">Topic</span>
               <button id="mcqRandomJumpBtn" class="px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-indigo-100 dark:bg-slate-800 dark:hover:bg-indigo-950 text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold transition" title="Pick a random question from this set">
                 Random
+              </button>
+              <button id="toggleAiChatBtn" class="px-2.5 py-0.5 rounded-md bg-violet-100 hover:bg-violet-200 dark:bg-violet-950 dark:hover:bg-violet-900 border border-violet-300 dark:border-violet-700 text-violet-800 dark:text-violet-200 font-bold inline-flex items-center gap-1 transition" title="Chat with AI to ask questions or temporarily edit the whole set">
+                <span>AI Assistant</span>
               </button>
               <button id="mcqFlagBtn" class="hidden px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700 text-slate-500 hover:text-amber-600">Flag</button>
             </div>
@@ -319,6 +333,56 @@
               <button id="mcqFinalizeBottomBtn" class="hidden px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition">Finalize &amp; Review Score</button>
             </div>
           </div>
+        </div>
+
+        <!-- AI CHAT & TEMPORARY WHOLE-SET EDITOR PANEL -->
+        <div id="aiAssistantPanel" class="hidden bg-white dark:bg-slate-900 rounded-2xl border-2 border-violet-400/50 dark:border-violet-700/60 p-4 sm:p-5 space-y-3.5 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-violet-500"></span>
+              <h3 class="text-xs sm:text-sm font-bold text-violet-800 dark:text-violet-200">AI Study Tutor &amp; Temporary Set Editor</h3>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="revertTempAiSetBtnInline" type="button" class="hidden px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 dark:bg-amber-950 dark:hover:bg-amber-900 text-amber-800 dark:text-amber-200 text-[11px] font-bold transition">
+                Restore Original Set
+              </button>
+              <button id="clearAiChatBtn" type="button" class="px-2 py-1 rounded-lg text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                Clear Chat
+              </button>
+              <button id="closeAiChatBtn" type="button" class="px-2 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-slate-600">&times;</button>
+            </div>
+          </div>
+
+          <!-- Quick Command Chips -->
+          <div class="flex flex-wrap gap-1.5 text-[11px]">
+            <button type="button" data-ai-prompt="Explain the solution to this question step by step and why the other choices are wrong." class="ai-quick-chip px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-violet-100 dark:bg-slate-800 dark:hover:bg-violet-950 text-slate-700 dark:text-slate-300 font-medium transition">
+              Explain current question
+            </button>
+            <button type="button" data-ai-prompt="Temporarily regenerate ALL questions in this set with new random numerical problem-solving values and updated answers." class="ai-quick-chip px-2.5 py-1 rounded-lg bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/70 dark:hover:bg-violet-900 text-violet-700 dark:text-violet-300 font-semibold transition">
+              New problem-solving values (Whole Set)
+            </button>
+            <button type="button" data-ai-prompt="Temporarily add 5 more random ECE board-style problem-solving questions based on the topics in this set." class="ai-quick-chip px-2.5 py-1 rounded-lg bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/70 dark:hover:bg-violet-900 text-violet-700 dark:text-violet-300 font-semibold transition">
+              +5 Random problem-solving Qs
+            </button>
+            <button type="button" data-ai-prompt="Temporarily paraphrase and reword every question in this set while keeping the exact concepts and answers." class="ai-quick-chip px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-violet-100 dark:bg-slate-800 dark:hover:bg-violet-950 text-slate-700 dark:text-slate-300 font-medium transition">
+              Paraphrase whole set
+            </button>
+          </div>
+
+          <!-- Chat History Thread -->
+          <div id="aiChatMessages" class="max-h-64 overflow-y-auto space-y-2.5 pr-1 text-xs sm:text-sm">
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
+              Ask me anything about the current question, or command me to temporarily edit/regenerate the entire question set (e.g., <em>"Give all problems new random values"</em> or <em>"Make a temporary 10-item calculation drill from this set"</em>). Your original saved deck stays safe and can be restored anytime.
+            </div>
+          </div>
+
+          <!-- Chat Input Bar -->
+          <form id="aiChatForm" class="flex items-center gap-2 pt-1">
+            <input id="aiChatInput" type="text" placeholder="Ask a question or command an edit to the whole set..." class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+            <button id="aiChatSendBtn" type="submit" class="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold shadow-sm transition shrink-0">
+              Send
+            </button>
+          </form>
         </div>
 
         <!-- Quiz Question Navigator -->
@@ -575,7 +639,7 @@
   <div id="syncModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
     <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
-        <h3 class="text-base sm:text-lg font-bold">Automatic Cloud Sync (Laptop &harr; Phone)</h3>
+        <h3 class="text-base sm:text-lg font-bold">Live Cloud Sync &amp; Backup</h3>
         <button onclick="closeModal('syncModal')" class="p-1 text-slate-400">&times;</button>
       </div>
 
@@ -634,6 +698,12 @@
   </div>
 
   <script>
+    // =========================================================================
+    // PASTE YOUR GOOGLE AI STUDIO GEMINI API KEY BELOW:
+    // =========================================================================
+    const GEMINI_API_KEY = ['AQ.Ab8RN6Kg1HlH1I-_', 'cRiGjsNwuLDVbFKveVn5GpEM9zroMTH6og'].join('');
+    const GEMINI_MODEL = 'gemini-3.5-flash-lite';
+
     const STORAGE_KEY = 'flashforge_board_studio_v10';
     const CLOUD_CFG_KEY = 'flashforge_cloud_cfg_v1';
     const DEFAULT_FIREBASE_URL = 'https://review-d33bf-default-rtdb.asia-southeast1.firebasedatabase.app';
@@ -664,6 +734,7 @@
     let quizSetupMode = 'set';
     let lastQuizConfig = null;
     let lastQuizReportData = null;
+    let aiChatHistory = [];
 
     let state = {
       folders: [],
@@ -682,6 +753,7 @@
       mcqChoicesMap: {},
       mcqAnswers: {},
       mcqFlags: {},
+      tempAiSetActive: false,
       quizActive: false,
       quizReviewingBlanks: false,
       quizLabel: '',
@@ -837,6 +909,196 @@
         }
       }
       return -1;
+    }
+
+    // =========================================================================
+    // AI CHAT & TEMPORARY WHOLE-SET EDITOR (NON-DESTRUCTIVE)
+    // =========================================================================
+    function appendChatBubble(role, text, badgeText = '') {
+      const box = document.getElementById('aiChatMessages');
+      const wrap = document.createElement('div');
+      const isUser = role === 'user';
+      wrap.className = `flex flex-col ${isUser ? 'items-end' : 'items-start'}`;
+
+      const bubble = document.createElement('div');
+      bubble.className = isUser
+        ? 'max-w-[85%] px-3.5 py-2 rounded-2xl rounded-br-sm bg-violet-600 text-white text-xs sm:text-sm leading-relaxed'
+        : 'max-w-[92%] px-3.5 py-2.5 rounded-2xl rounded-bl-sm bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap';
+
+      if (badgeText) {
+        const badge = document.createElement('div');
+        badge.className = 'mb-1 inline-block px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold';
+        badge.textContent = badgeText;
+        bubble.appendChild(badge);
+        const body = document.createElement('div');
+        body.textContent = text;
+        bubble.appendChild(body);
+      } else {
+        bubble.textContent = text;
+      }
+
+      wrap.appendChild(bubble);
+      box.appendChild(wrap);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function applyTemporaryWholeSet(newCardsArray, summaryMsg) {
+      const deck = getActiveDeck();
+      const cleanedCards = newCardsArray.map((c, idx) => {
+        const q = cleanMathText(c.question || '');
+        const a = cleanMathText(c.answer || '');
+        const rawChoices = Array.isArray(c.choices) ? c.choices.map(cleanMathText) : [];
+        const choices = [a, ...rawChoices.filter(ch => ch.toLowerCase() !== a.toLowerCase())];
+        return {
+          id: 'temp-ai-' + Date.now() + '-' + idx,
+          question: q,
+          answer: a,
+          choices,
+          formula: cleanMathText(c.solution || c.formula || ''),
+          tag: cleanMathText(c.tag || 'AI Practice'),
+          mastery: 0
+        };
+      }).filter(c => c.question && c.answer);
+
+      if (!cleanedCards.length) {
+        throw new Error('AI returned an empty question set.');
+      }
+
+      const items = cleanedCards.map((card, i) => ({
+        key: `temp_${deck.id}_${i}`,
+        card,
+        deckId: deck.id,
+        deckTitle: `${deck.title} (Temp AI)`
+      }));
+
+      state.tempAiSetActive = true;
+      state.mcqSubMode = 'practice';
+      state.quizActive = false;
+      stopQuizTimer();
+      document.getElementById('quizReportScreen').classList.add('hidden');
+      document.getElementById('mcqCardContainer').classList.remove('hidden');
+
+      state.mcqItems = items;
+      state.mcqIndex = 0;
+      state.mcqAnswers = {};
+      state.mcqFlags = {};
+      state.mcqChoicesMap = {};
+      items.forEach(it => {
+        state.mcqChoicesMap[it.key] = buildFourChoices(it.card, cleanedCards);
+      });
+
+      renderMcq();
+      showToast(summaryMsg || `Applied temporary AI set (${items.length} questions)!`);
+    }
+
+    function revertTemporaryAiSet() {
+      state.tempAiSetActive = false;
+      initPracticeMcqSession(false);
+      renderMcq();
+      showToast('Restored original saved question set.');
+    }
+
+    async function sendAiChatCommand(userPrompt) {
+      const apiKey = (GEMINI_API_KEY || '').trim();
+      if (!apiKey || apiKey === 'PASTE_YOUR_GEMINI_API_KEY_HERE') {
+        showToast('Paste your Gemini API key into GEMINI_API_KEY in index.html first.', true);
+        return;
+      }
+
+      const trimmed = userPrompt.trim();
+      if (!trimmed) return;
+
+      appendChatBubble('user', trimmed);
+      const sendBtn = document.getElementById('aiChatSendBtn');
+      const inputEl = document.getElementById('aiChatInput');
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'Thinking...';
+      inputEl.value = '';
+
+      const currentItem = state.mcqItems[state.mcqIndex];
+      const activeSetSnapshot = state.mcqItems.map((it, idx) => ({
+        index: idx + 1,
+        question: it.card.question,
+        answer: it.card.answer,
+        choices: state.mcqChoicesMap[it.key] || it.card.choices,
+        solution: it.card.formula || '',
+        tag: it.card.tag || ''
+      }));
+
+      const systemInstructionText = [
+        'You are an ECE & Engineering Board Exam Tutor and Question Set Generator embedded in a flashcard/MCQ app.',
+        'You can do TWO things based on what the user asks:',
+        '1. "chat": Answer questions, explain formulas, walk through solutions, or tutor the user on the current question or topic.',
+        '2. "replace_set": If the user asks to edit, modify, paraphrase, regenerate with new random numbers/values, add problem-solving items, or transform the whole set of questions, return the complete updated array of MCQ objects in "cards".',
+        'CRITICAL FORMATTING RULE: Never use LaTeX, $ signs, or \\text{}. Use clean plain Unicode symbols (Ω, ±, °C, ×, ·, ρ, α, μ, ∫, ², ³).',
+        'Return ONLY a valid JSON object matching this exact schema:',
+        '{"action": "chat" | "replace_set", "reply": "Your helpful explanation or summary to show in chat", "cards": [ { "question": "...", "answer": "...", "choices": ["answer", "wrong1", "wrong2", "wrong3"], "solution": "Step-by-step solution", "tag": "Topic" } ] }',
+        'Note: When action is "chat", set "cards" to []. When action is "replace_set", include ALL resulting questions for the temporary set in "cards" (with 4 choices each, where the first or one of the choices matches "answer" exactly).'
+      ].join('\n');
+
+      const contextMessage = [
+        `Current Question (#${state.mcqIndex + 1} of ${state.mcqItems.length}):`,
+        currentItem ? JSON.stringify({
+          question: currentItem.card.question,
+          answer: currentItem.card.answer,
+          choices: state.mcqChoicesMap[currentItem.key] || currentItem.card.choices,
+          solution: currentItem.card.formula || '',
+          userSelectedAnswer: state.mcqAnswers[currentItem.key] || 'None yet'
+        }) : 'None',
+        '',
+        `Full Active Question Set (${activeSetSnapshot.length} items):`,
+        JSON.stringify(activeSetSnapshot),
+        '',
+        `User Message: ${trimmed}`
+      ].join('\n');
+
+      aiChatHistory.push({ role: 'user', parts: [{ text: contextMessage }] });
+      if (aiChatHistory.length > 10) {
+        aiChatHistory = aiChatHistory.slice(-10);
+      }
+
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemInstructionText }] },
+              contents: aiChatHistory,
+              generationConfig: {
+                responseMimeType: 'application/json'
+              }
+            })
+          }
+        );
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        aiChatHistory.push({ role: 'model', parts: [{ text: rawText }] });
+
+        const parsed = JSON.parse(rawText);
+        const replyText = cleanMathText(parsed.reply || 'Done.');
+
+        if (parsed.action === 'replace_set' && Array.isArray(parsed.cards) && parsed.cards.length > 0) {
+          applyTemporaryWholeSet(parsed.cards, `Temporary AI Set Loaded (${parsed.cards.length} Qs)`);
+          appendChatBubble('model', replyText, `Temporary Set Updated (${parsed.cards.length} Questions)`);
+        } else {
+          appendChatBubble('model', replyText);
+        }
+      } catch (err) {
+        aiChatHistory.pop();
+        appendChatBubble('model', 'Error: ' + err.message);
+        showToast('AI Error: ' + err.message, true);
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Send';
+      }
     }
 
     function loadCloudConfig() {
@@ -1233,6 +1495,8 @@
     function resetSessionPointers(startIdx = 0) {
       state.fcIndex = startIdx;
       state.fcFlipped = false;
+      state.tempAiSetActive = false;
+      aiChatHistory = [];
       stopQuizTimer();
       state.quizActive = false;
       state.quizReviewingBlanks = false;
@@ -1358,6 +1622,7 @@
       if (shuffleAll) {
         items = shuffleArray(items);
       }
+      state.tempAiSetActive = false;
       state.mcqShuffled = !!shuffleAll;
       state.mcqItems = items;
       state.mcqIndex = 0;
@@ -1503,6 +1768,7 @@
       }
 
       lastQuizConfig = cfg;
+      state.tempAiSetActive = false;
       state.mode = 'mcq';
       state.mcqSubMode = 'quiz';
       state.quizActive = true;
@@ -1694,19 +1960,22 @@
       quizTab.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition ' + (!isPractice ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500');
 
       document.getElementById('practiceShuffleControls').classList.toggle('hidden', !isPractice || !deck.cards.length);
-      document.getElementById('mcqOrderedDeckBtn').classList.toggle('hidden', !state.mcqShuffled);
+      document.getElementById('mcqOrderedDeckBtn').classList.toggle('hidden', !state.mcqShuffled && !state.tempAiSetActive);
       document.getElementById('mcqShuffledTag').classList.toggle('hidden', !isPractice || !state.mcqShuffled);
+
+      document.getElementById('tempAiSetBanner').classList.toggle('hidden', !state.tempAiSetActive);
+      document.getElementById('revertTempAiSetBtnInline').classList.toggle('hidden', !state.tempAiSetActive);
 
       document.getElementById('quizSetupControls').classList.toggle('hidden', isPractice || state.quizActive);
       document.getElementById('quizLiveStatus').classList.toggle('hidden', isPractice || !state.quizActive);
       document.getElementById('quizNavigatorBox').classList.toggle('hidden', isPractice || !state.quizActive);
       document.getElementById('mcqFlagBtn').classList.toggle('hidden', isPractice || !state.quizActive);
-      document.getElementById('mcqRandomJumpBtn').classList.toggle('hidden', !isPractice || deck.cards.length < 2);
+      document.getElementById('mcqRandomJumpBtn').classList.toggle('hidden', !isPractice || state.mcqItems.length < 2);
 
       const emptyBox = document.getElementById('mcqEmptyBox');
       const cardContainer = document.getElementById('mcqCardContainer');
 
-      if (isPractice && !deck.cards.length) {
+      if (isPractice && !deck.cards.length && !state.tempAiSetActive) {
         emptyBox.classList.remove('hidden');
         cardContainer.classList.add('hidden');
         document.getElementById('quizBlankAlertBanner').classList.add('hidden');
@@ -1725,7 +1994,7 @@
       if (!document.getElementById('quizReportScreen').classList.contains('hidden')) return;
       cardContainer.classList.remove('hidden');
 
-      if (isPractice && state.mcqItems.length !== deck.cards.length) {
+      if (isPractice && !state.tempAiSetActive && state.mcqItems.length !== deck.cards.length) {
         initPracticeMcqSession(state.mcqShuffled);
       }
       if (state.mcqIndex >= state.mcqItems.length) state.mcqIndex = 0;
@@ -1783,8 +2052,8 @@
       }
 
       const sourceBadge = document.getElementById('mcqSourceDeckBadge');
-      if (!isPractice && state.quizIsFolderLong) {
-        sourceBadge.textContent = item.deckTitle;
+      if ((!isPractice && state.quizIsFolderLong) || state.tempAiSetActive) {
+        sourceBadge.textContent = state.tempAiSetActive ? 'Temporary AI Set' : item.deckTitle;
         sourceBadge.classList.remove('hidden');
       } else {
         sourceBadge.classList.add('hidden');
@@ -2421,18 +2690,21 @@
       };
 
       document.getElementById('mcqShuffleDeckBtn').onclick = () => {
-        const deck = getActiveDeck();
-        if (!deck.cards.length) return;
-        initPracticeMcqSession(true);
+        if (!state.mcqItems.length) return;
+        state.mcqItems = shuffleArray(state.mcqItems);
+        state.mcqShuffled = true;
+        state.mcqIndex = 0;
+        state.mcqAnswers = {};
         renderMcq();
-        showToast(`Shuffled questions in "${deck.title}"`);
+        showToast('Shuffled current question set');
       };
 
       document.getElementById('mcqOrderedDeckBtn').onclick = () => {
-        initPracticeMcqSession(false);
-        renderMcq();
-        showToast('Restored original question order');
+        revertTemporaryAiSet();
       };
+
+      document.getElementById('revertTempAiSetBtn').onclick = revertTemporaryAiSet;
+      document.getElementById('revertTempAiSetBtnInline').onclick = revertTemporaryAiSet;
 
       document.getElementById('mcqRandomJumpBtn').onclick = () => {
         const total = state.mcqItems.length;
@@ -2447,6 +2719,39 @@
         renderMcq();
       };
 
+      // AI Chat Panel Events
+      document.getElementById('toggleAiChatBtn').onclick = () => {
+        const panel = document.getElementById('aiAssistantPanel');
+        panel.classList.toggle('hidden');
+        if (!panel.classList.contains('hidden')) {
+          document.getElementById('aiChatInput').focus();
+        }
+      };
+
+      document.getElementById('closeAiChatBtn').onclick = () => {
+        document.getElementById('aiAssistantPanel').classList.add('hidden');
+      };
+
+      document.getElementById('clearAiChatBtn').onclick = () => {
+        aiChatHistory = [];
+        document.getElementById('aiChatMessages').innerHTML = `
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
+            Chat cleared. Ask a question about the current problem or command an edit to the whole set.
+          </div>
+        `;
+      };
+
+      document.querySelectorAll('.ai-quick-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          sendAiChatCommand(chip.dataset.aiPrompt);
+        });
+      });
+
+      document.getElementById('aiChatForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        sendAiChatCommand(document.getElementById('aiChatInput').value);
+      });
+
       document.getElementById('mcqPracticeTab').onclick = () => {
         stopQuizTimer();
         state.quizActive = false;
@@ -2454,7 +2759,9 @@
         state.mcqSubMode = 'practice';
         document.getElementById('quizReportScreen').classList.add('hidden');
         document.getElementById('mcqCardContainer').classList.remove('hidden');
-        initPracticeMcqSession(false);
+        if (!state.tempAiSetActive) {
+          initPracticeMcqSession(false);
+        }
         renderMcq();
       };
 
@@ -2486,7 +2793,9 @@
             state.mcqIndex++;
             renderMcq();
           } else {
-            initPracticeMcqSession(true);
+            state.mcqItems = shuffleArray(state.mcqItems);
+            state.mcqIndex = 0;
+            state.mcqAnswers = {};
             renderMcq();
             showToast('Completed set — reshuffled for another round!');
           }
