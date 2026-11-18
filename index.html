@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>PlashKard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -27,12 +27,30 @@
     * { -webkit-tap-highlight-color: transparent; }
     .perspective { perspective: 1200px; }
     .preserve-3d { transform-style: preserve-3d; transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1); }
-    .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+    .flip-grid { display: grid; }
+    .flip-face { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
     .rotate-y-180 { transform: rotateY(180deg); }
     .drop-target-active { outline: 2px dashed #6366f1; background-color: rgba(99, 102, 241, 0.12) !important; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .safe-bottom-nav { padding-bottom: env(safe-area-inset-bottom, 0px); }
+    .safe-main-pad { padding-bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px)); }
+    @media (min-width: 1024px) {
+      .safe-main-pad { padding-bottom: 2rem; }
+    }
+    /* Prevent iOS Safari & iPadOS forced zoom on form inputs */
+    @media (max-width: 1023px) {
+      input[type="text"],
+      input[type="url"],
+      input[type="search"],
+      textarea,
+      select {
+        font-size: 16px !important;
+      }
+    }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-[100dvh] flex flex-col selection:bg-indigo-500 selection:text-white">
 
   <!-- Full-Screen Drag & Drop JSON Overlay -->
   <div id="globalFileDropOverlay" class="fixed inset-0 z-[70] bg-indigo-950/80 backdrop-blur-sm hidden items-center justify-center p-6 pointer-events-none">
@@ -46,38 +64,38 @@
   </div>
 
   <!-- Toast Banner -->
-  <div id="toastBanner" class="fixed top-4 right-4 z-[60] hidden px-4 py-3 rounded-xl bg-emerald-600 text-white text-xs sm:text-sm font-semibold shadow-lg transition"></div>
+  <div id="toastBanner" class="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 z-[60] hidden px-4 py-3 rounded-xl bg-emerald-600 text-white text-xs sm:text-sm font-semibold shadow-lg transition text-center sm:text-left"></div>
 
   <!-- Top Navbar -->
-  <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2.5 min-w-0">
-        <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800" title="Folders & Decks">
+  <header class="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-2.5 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-2">
+      <div class="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
+        <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 dark:active:bg-slate-700" title="Folders & Decks" aria-label="Open Folders and Decks">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
-        <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shrink-0">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
         </div>
-        <div class="truncate">
+        <div class="hidden sm:block truncate">
           <h1 class="font-bold text-base sm:text-lg leading-tight tracking-tight truncate">PlashKard</h1>
         </div>
       </div>
 
       <!-- Mode Switcher -->
       <nav class="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/70 dark:border-slate-700/70">
-        <button data-mode="flashcards" class="mode-btn px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition">Flashcards</button>
-        <button data-mode="mcq" class="mode-btn px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition">Board MCQ</button>
-        <button data-mode="cards" class="mode-btn px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition">Cards</button>
+        <button data-mode="flashcards" class="mode-btn px-2 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition">Flashcards</button>
+        <button data-mode="mcq" class="mode-btn px-2 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition">Board MCQ</button>
+        <button data-mode="cards" class="mode-btn px-2 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition">Cards</button>
       </nav>
 
       <!-- Right Actions -->
-      <div class="flex items-center gap-1.5 sm:gap-2">
+      <div class="flex items-center gap-1 sm:gap-2">
         <div class="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200/70 dark:border-amber-800/50 text-xs font-semibold text-amber-700 dark:text-amber-300">
           <span>Streak: <span id="streakCount">1</span>d</span>
           <span class="text-slate-300 dark:text-slate-700">|</span>
           <span class="text-emerald-600 dark:text-emerald-400"><span id="todayCount">0</span> today</span>
         </div>
-        <button id="openBulkBtnTop" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/70 dark:text-indigo-300 dark:hover:bg-indigo-900/70 border border-indigo-200/70 dark:border-indigo-800/60 transition">
+        <button id="openBulkBtnTop" class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/70 dark:text-indigo-300 dark:hover:bg-indigo-900/70 border border-indigo-200/70 dark:border-indigo-800/60 transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
           <span>JSON Import</span>
         </button>
@@ -85,7 +103,7 @@
           <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
           <span class="hidden sm:inline" id="cloudStatusLabel">Sync</span>
         </button>
-        <button id="themeToggleBtn" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Toggle Dark Mode">
+        <button id="themeToggleBtn" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
           <svg class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
           <svg class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
         </button>
@@ -95,11 +113,11 @@
 
   <!-- Main Workspace -->
   <div class="flex-1 max-w-7xl w-full mx-auto flex relative">
-    <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/50 z-30 hidden lg:hidden"></div>
+    <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-[1px] z-30 hidden lg:hidden"></div>
 
-    <!-- Left Sidebar -->
-    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-76 sm:w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col">
-      <div class="p-4 border-b border-slate-200 dark:border-slate-800 space-y-2">
+    <!-- Left Sidebar (Slide-over on Phone/iPad, Static on Desktop) -->
+    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-[85vw] max-w-[330px] lg:w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col">
+      <div class="p-4 border-b border-slate-200 dark:border-slate-800 space-y-2.5">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Folders &amp; Decks</p>
@@ -110,57 +128,64 @@
               <span>+ Folder</span>
             </button>
             <button id="newDeckBtn" class="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition">+ Deck</button>
+            <button id="closeSidebarMobileBtn" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-base leading-none font-bold" title="Close Menu">&times;</button>
           </div>
         </div>
-        <p class="text-[10px] text-slate-400">Tip: Drag a deck onto a folder, or drop a .json file anywhere.</p>
+        <!-- Mobile/iPad Streak Pill -->
+        <div class="flex md:hidden items-center justify-between px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200/70 dark:border-amber-800/50 text-xs font-semibold text-amber-700 dark:text-amber-300">
+          <span>Streak: <span id="streakCountMobile">1</span>d</span>
+          <span class="text-emerald-600 dark:text-emerald-400"><span id="todayCountMobile">0</span> answered today</span>
+        </div>
+        <p class="hidden lg:block text-[10px] text-slate-400">Tip: Drag a deck onto a folder, or drop a .json file anywhere.</p>
+        <p class="lg:hidden text-[11px] text-slate-400">Tap a set to open, or tap the folder icon on any set to move it.</p>
       </div>
 
       <div id="deckList" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
 
-      <div class="p-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
-        <button id="openBulkBtnSide" class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold flex items-center justify-center gap-2 transition">
+      <div class="p-3 border-t border-slate-200 dark:border-slate-800 space-y-2 safe-bottom-nav">
+        <button id="openBulkBtnSide" class="w-full py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold flex items-center justify-center gap-2 transition">
           <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
           <span>Import JSON Question Set</span>
         </button>
-        <button id="openShortcutsBtn" class="w-full py-1.5 px-3 rounded-lg text-[11px] text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 text-center">
+        <button id="openShortcutsBtn" class="hidden lg:block w-full py-1.5 px-3 rounded-lg text-[11px] text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 text-center">
           Keyboard Shortcuts (?)
         </button>
       </div>
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 p-4 sm:p-6 pb-24 lg:pb-8 min-w-0">
-      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+    <main class="flex-1 p-3.5 sm:p-6 safe-main-pad min-w-0">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div class="min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
             <span id="activeFolderBadge" class="hidden px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60"></span>
             <div class="flex items-center gap-2 min-w-0">
               <span id="activeDeckDot" class="w-3 h-3 rounded-full bg-indigo-500 shrink-0"></span>
-              <h2 id="activeDeckTitle" class="text-xl sm:text-2xl font-bold tracking-tight truncate">Deck Title</h2>
-              <button id="renameDeckBtn" class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" title="Rename Question Set">
+              <h2 id="activeDeckTitle" class="text-lg sm:text-2xl font-bold tracking-tight truncate">Deck Title</h2>
+              <button id="renameDeckBtn" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 shrink-0" title="Rename Question Set">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
               </button>
             </div>
           </div>
-          <div class="flex flex-wrap items-center gap-2 mt-1">
+          <div class="flex flex-wrap items-center gap-2 mt-1.5">
             <p id="activeDeckMeta" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">0 cards in set</p>
             <span class="text-slate-300 dark:text-slate-700">&bull;</span>
             <label class="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
               <span>Folder:</span>
-              <select id="activeDeckFolderSelect" class="px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none"></select>
+              <select id="activeDeckFolderSelect" class="px-2 py-1 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none"></select>
             </label>
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
-          <button id="openQuizSetupTopBtn" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm inline-flex items-center gap-1.5 transition">
+        <div class="flex items-center gap-2 flex-wrap">
+          <button id="openQuizSetupTopBtn" class="flex-1 sm:flex-none justify-center px-3.5 py-2.5 sm:py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm inline-flex items-center gap-1.5 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <span>Start a Quiz</span>
           </button>
-          <button id="openBulkBtnMain" class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs sm:text-sm font-semibold transition">
+          <button id="openBulkBtnMain" class="px-3 py-2.5 sm:py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs sm:text-sm font-semibold transition">
             Import JSON
           </button>
-          <button id="addCardBtn" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition">
+          <button id="addCardBtn" class="px-3 py-2.5 sm:py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition">
             + Card
           </button>
         </div>
@@ -171,8 +196,8 @@
         <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
           <span id="fcProgressText">Card 1 of 1</span>
           <div class="flex items-center gap-3">
-            <button id="fcShuffleBtn" class="hover:text-indigo-600 dark:hover:text-indigo-400 font-medium">Shuffle Set</button>
-            <button id="fcResetBtn" class="hover:text-rose-600 dark:hover:text-rose-400 font-medium">Reset Mastery</button>
+            <button id="fcShuffleBtn" class="py-1 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium">Shuffle Set</button>
+            <button id="fcResetBtn" class="py-1 hover:text-rose-600 dark:hover:text-rose-400 font-medium">Reset Mastery</button>
           </div>
         </div>
 
@@ -180,58 +205,60 @@
           <div id="fcProgressBar" class="h-full bg-indigo-600 transition-all duration-300" style="width: 0%"></div>
         </div>
 
-        <div id="fcEmptyState" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-10 text-center">
+        <div id="fcEmptyState" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 sm:p-10 text-center">
           <p class="text-base font-semibold mb-1">No cards in this set yet</p>
-          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Drag &amp; drop a .json file anywhere, import JSON, or add cards manually.</p>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Import a .json file or add cards manually.</p>
           <div class="flex flex-wrap justify-center gap-2">
-            <button onclick="openBulkModal()" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold">Import JSON Questions</button>
-            <button onclick="openCardModal(null)" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold">+ Add Card Manually</button>
+            <button onclick="openBulkModal()" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold">Import JSON Questions</button>
+            <button onclick="openCardModal(null)" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold">+ Add Card Manually</button>
           </div>
         </div>
 
         <div id="fcStage" class="perspective max-w-3xl mx-auto">
-          <div id="flashcardEl" class="relative w-full min-h-[320px] sm:min-h-[370px] cursor-pointer preserve-3d select-none">
-            <div class="absolute inset-0 backface-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8 flex flex-col justify-between">
+          <div id="flashcardEl" class="flip-grid w-full cursor-pointer preserve-3d select-none touch-pan-y">
+            <!-- Front Face -->
+            <div class="flip-face min-h-[290px] sm:min-h-[360px] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-8 flex flex-col justify-between">
               <div class="flex items-center justify-between gap-2">
                 <span id="fcTagFront" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">Topic</span>
                 <span id="fcStatusBadge" class="text-xs font-medium text-slate-400">New</span>
               </div>
-              <div class="my-auto py-4 text-center">
-                <p id="fcQuestionText" class="text-lg sm:text-2xl font-semibold leading-relaxed"></p>
+              <div class="my-auto py-5 text-center">
+                <p id="fcQuestionText" class="text-base sm:text-2xl font-semibold leading-relaxed break-words"></p>
               </div>
               <div class="text-center text-xs text-slate-400">
-                Tap card or press <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono">Space</kbd> to flip &bull; Swipe on mobile
+                Tap card to flip &bull; Swipe left (Again) or right (Good)
               </div>
             </div>
 
-            <div class="absolute inset-0 backface-hidden rotate-y-180 bg-white dark:bg-slate-900 rounded-2xl border-2 border-indigo-500/40 shadow-sm p-6 sm:p-8 flex flex-col justify-between overflow-y-auto">
+            <!-- Back Face -->
+            <div class="flip-face min-h-[290px] sm:min-h-[360px] rotate-y-180 bg-white dark:bg-slate-900 rounded-2xl border-2 border-indigo-500/40 shadow-sm p-5 sm:p-8 flex flex-col justify-between">
               <div class="flex items-center justify-between gap-2">
                 <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Answer &amp; Solution</span>
                 <span id="fcTagBack" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Topic</span>
               </div>
-              <div class="my-auto py-3 space-y-3">
-                <p id="fcAnswerText" class="text-lg sm:text-xl font-bold text-emerald-600 dark:text-emerald-400 text-center"></p>
-                <div id="fcFormulaBox" class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed"></div>
+              <div class="my-auto py-4 space-y-3">
+                <p id="fcAnswerText" class="text-base sm:text-xl font-bold text-emerald-600 dark:text-emerald-400 text-center break-words"></p>
+                <div id="fcFormulaBox" class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed break-words"></div>
               </div>
               <div class="text-center text-xs text-slate-400">Rate recall below to schedule next review</div>
             </div>
           </div>
         </div>
 
-        <div id="fcControls" class="max-w-3xl mx-auto grid grid-cols-4 gap-2 sm:gap-3 pt-1">
-          <button data-rate="1" class="rate-btn py-2.5 sm:py-3 px-2 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300 text-xs sm:text-sm font-semibold transition">1 &bull; Again</button>
-          <button data-rate="2" class="rate-btn py-2.5 sm:py-3 px-2 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/60 text-amber-700 dark:text-amber-300 text-xs sm:text-sm font-semibold transition">2 &bull; Hard</button>
-          <button data-rate="3" class="rate-btn py-2.5 sm:py-3 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm font-semibold transition">3 &bull; Good</button>
-          <button data-rate="4" class="rate-btn py-2.5 sm:py-3 px-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 text-xs sm:text-sm font-semibold transition">4 &bull; Easy</button>
+        <div id="fcControls" class="max-w-3xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 pt-1">
+          <button data-rate="1" class="rate-btn py-3 px-2 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300 text-xs sm:text-sm font-semibold transition">1 &bull; Again</button>
+          <button data-rate="2" class="rate-btn py-3 px-2 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/60 text-amber-700 dark:text-amber-300 text-xs sm:text-sm font-semibold transition">2 &bull; Hard</button>
+          <button data-rate="3" class="rate-btn py-3 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm font-semibold transition">3 &bull; Good</button>
+          <button data-rate="4" class="rate-btn py-3 px-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 text-xs sm:text-sm font-semibold transition">4 &bull; Easy</button>
         </div>
       </section>
 
       <!-- VIEW 2: BOARD MCQ & QUIZ ENGINE -->
       <section id="mcqView" class="hidden space-y-4 max-w-3xl mx-auto">
-        <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
-          <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-            <button id="mcqPracticeTab" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition">Practice (Instant)</button>
-            <button id="mcqQuizTab" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition">Quiz Mode (Scored)</button>
+        <div class="bg-white dark:bg-slate-900 p-2.5 sm:p-3 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+            <button id="mcqPracticeTab" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition">Practice (Instant)</button>
+            <button id="mcqQuizTab" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition">Quiz Mode (Scored)</button>
           </div>
 
           <!-- Practice Shuffle Controls -->
@@ -279,7 +306,7 @@
         </div>
 
         <!-- All Questions Answered Ready Banner -->
-        <div id="quizAllAnsweredBanner" class="hidden p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 flex items-center justify-between gap-3 text-xs">
+        <div id="quizAllAnsweredBanner" class="hidden p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div class="flex items-center gap-2 text-emerald-900 dark:text-emerald-200 font-semibold">
             <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <span>All questions are answered! You can now finalize and review your score &amp; all answers.</span>
@@ -289,15 +316,15 @@
           </button>
         </div>
 
-        <div id="mcqEmptyBox" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 text-center space-y-3">
-          <p class="text-sm text-slate-500">No questions available here yet. Drop a .json file anywhere, import JSON, or add cards manually.</p>
+        <div id="mcqEmptyBox" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-7 sm:p-8 text-center space-y-3">
+          <p class="text-sm text-slate-500">No questions available here yet. Import a .json file or add cards manually.</p>
           <div class="flex flex-wrap justify-center gap-2">
-            <button onclick="openBulkModal()" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold">Import JSON</button>
-            <button onclick="openCardModal(null)" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold">+ Add Card Manually</button>
+            <button onclick="openBulkModal()" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold">Import JSON</button>
+            <button onclick="openCardModal(null)" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold">+ Add Card Manually</button>
           </div>
         </div>
 
-        <div id="mcqCardContainer" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-7 space-y-5 shadow-sm">
+        <div id="mcqCardContainer" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-7 space-y-4 sm:space-y-5 shadow-sm">
           <div class="flex items-center justify-between gap-2 text-xs flex-wrap">
             <div class="flex items-center gap-2">
               <span id="mcqCounterBadge" class="font-bold text-indigo-600 dark:text-indigo-400">Question 1 of 6</span>
@@ -306,65 +333,65 @@
             </div>
             <div class="flex items-center gap-1.5 flex-wrap">
               <span id="mcqSourceDeckBadge" class="hidden px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50 font-semibold">Set Name</span>
-              <span id="mcqTopicBadge" class="px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">Topic</span>
-              <button id="mcqRandomJumpBtn" class="px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-indigo-100 dark:bg-slate-800 dark:hover:bg-indigo-950 text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold transition" title="Pick a random question from this set">
+              <span id="mcqTopicBadge" class="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">Topic</span>
+              <button id="mcqRandomJumpBtn" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-indigo-100 dark:bg-slate-800 dark:hover:bg-indigo-950 text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold transition" title="Pick a random question from this set">
                 Random
               </button>
-              <button id="toggleAiChatBtn" class="px-2.5 py-0.5 rounded-md bg-violet-100 hover:bg-violet-200 dark:bg-violet-950 dark:hover:bg-violet-900 border border-violet-300 dark:border-violet-700 text-violet-800 dark:text-violet-200 font-bold inline-flex items-center gap-1 transition" title="Chat with AI to ask questions or temporarily edit the whole set">
+              <button id="toggleAiChatBtn" class="px-2.5 py-1 rounded-md bg-violet-100 hover:bg-violet-200 dark:bg-violet-950 dark:hover:bg-violet-900 border border-violet-300 dark:border-violet-700 text-violet-800 dark:text-violet-200 font-bold inline-flex items-center gap-1 transition" title="Chat with AI to ask questions or temporarily edit the whole set">
                 <span>AI Assistant</span>
               </button>
-              <button id="mcqFlagBtn" class="hidden px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700 text-slate-500 hover:text-amber-600">Flag</button>
+              <button id="mcqFlagBtn" class="hidden px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 text-slate-500 hover:text-amber-600">Flag</button>
             </div>
           </div>
 
-          <p id="mcqQuestionText" class="text-base sm:text-xl font-semibold leading-relaxed"></p>
+          <p id="mcqQuestionText" class="text-base sm:text-xl font-semibold leading-relaxed break-words"></p>
           <div id="mcqChoicesList" class="space-y-2.5"></div>
 
           <div id="mcqFeedbackBox" class="hidden p-4 rounded-xl border text-xs sm:text-sm space-y-1.5">
             <p id="mcqFeedbackTitle" class="font-bold"></p>
-            <p id="mcqSolutionText" class="text-slate-700 dark:text-slate-200 leading-relaxed"></p>
+            <p id="mcqSolutionText" class="text-slate-700 dark:text-slate-200 leading-relaxed break-words"></p>
           </div>
 
-          <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <button id="mcqPrevBtn" class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800">Previous</button>
-            <span class="text-[11px] text-slate-400 hidden sm:inline">Keys: A, B, C, D to answer &bull; Enter for Next</span>
+          <div class="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <button id="mcqPrevBtn" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 active:bg-slate-100 dark:active:bg-slate-800">Previous</button>
+            <span class="text-[11px] text-slate-400 hidden md:inline">Keys: A, B, C, D to answer &bull; Enter for Next</span>
             <div class="flex items-center gap-2">
-              <button id="mcqNextBtn" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition">Next Question</button>
-              <button id="mcqFinalizeBottomBtn" class="hidden px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition">Finalize &amp; Review Score</button>
+              <button id="mcqNextBtn" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold transition">Next Question</button>
+              <button id="mcqFinalizeBottomBtn" class="hidden px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-sm transition">Finalize &amp; Review Score</button>
             </div>
           </div>
         </div>
 
         <!-- AI CHAT & TEMPORARY WHOLE-SET EDITOR PANEL -->
         <div id="aiAssistantPanel" class="hidden bg-white dark:bg-slate-900 rounded-2xl border-2 border-violet-400/50 dark:border-violet-700/60 p-4 sm:p-5 space-y-3.5 shadow-sm">
-          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2.5">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-violet-500"></span>
-              <h3 class="text-xs sm:text-sm font-bold text-violet-800 dark:text-violet-200">AI Study Tutor &amp; Temporary Set Editor</h3>
+          <div class="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2.5">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-2.5 h-2.5 rounded-full bg-violet-500 shrink-0"></span>
+              <h3 class="text-xs sm:text-sm font-bold text-violet-800 dark:text-violet-200 truncate">AI Study Tutor &amp; Temporary Set Editor</h3>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 shrink-0">
               <button id="revertTempAiSetBtnInline" type="button" class="hidden px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 dark:bg-amber-950 dark:hover:bg-amber-900 text-amber-800 dark:text-amber-200 text-[11px] font-bold transition">
-                Restore Original Set
+                Restore Original
               </button>
               <button id="clearAiChatBtn" type="button" class="px-2 py-1 rounded-lg text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                Clear Chat
+                Clear
               </button>
-              <button id="closeAiChatBtn" type="button" class="px-2 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-slate-600">&times;</button>
+              <button id="closeAiChatBtn" type="button" class="px-2 py-1 rounded-lg text-base leading-none font-bold text-slate-400 hover:text-slate-600">&times;</button>
             </div>
           </div>
 
-          <!-- Quick Command Chips -->
-          <div class="flex flex-wrap gap-1.5 text-[11px]">
-            <button type="button" data-ai-prompt="Explain the solution to this question step by step and why the other choices are wrong." class="ai-quick-chip px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-violet-100 dark:bg-slate-800 dark:hover:bg-violet-950 text-slate-700 dark:text-slate-300 font-medium transition">
+          <!-- Quick Command Chips (Horizontal scroll on mobile, wrapped on tablet/desktop) -->
+          <div class="flex sm:flex-wrap gap-1.5 text-[11px] overflow-x-auto no-scrollbar pb-0.5">
+            <button type="button" data-ai-prompt="Explain the solution to this question step by step and why the other choices are wrong." class="ai-quick-chip shrink-0 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-violet-100 dark:bg-slate-800 dark:hover:bg-violet-950 text-slate-700 dark:text-slate-300 font-medium transition">
               Explain current question
             </button>
-            <button type="button" data-ai-prompt="Temporarily regenerate ALL questions in this set with new random numerical problem-solving values and updated answers." class="ai-quick-chip px-2.5 py-1 rounded-lg bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/70 dark:hover:bg-violet-900 text-violet-700 dark:text-violet-300 font-semibold transition">
+            <button type="button" data-ai-prompt="Temporarily regenerate ALL questions in this set with new random numerical problem-solving values and updated answers." class="ai-quick-chip shrink-0 px-3 py-1.5 rounded-lg bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/70 dark:hover:bg-violet-900 text-violet-700 dark:text-violet-300 font-semibold transition">
               New problem-solving values (Whole Set)
             </button>
-            <button type="button" data-ai-prompt="Temporarily add 5 more random ECE board-style problem-solving questions based on the topics in this set." class="ai-quick-chip px-2.5 py-1 rounded-lg bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/70 dark:hover:bg-violet-900 text-violet-700 dark:text-violet-300 font-semibold transition">
+            <button type="button" data-ai-prompt="Temporarily add 5 more random board-style problem-solving questions based on the topics in this set." class="ai-quick-chip shrink-0 px-3 py-1.5 rounded-lg bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/70 dark:hover:bg-violet-900 text-violet-700 dark:text-violet-300 font-semibold transition">
               +5 Random problem-solving Qs
             </button>
-            <button type="button" data-ai-prompt="Temporarily paraphrase and reword every question in this set while keeping the exact concepts and answers." class="ai-quick-chip px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-violet-100 dark:bg-slate-800 dark:hover:bg-violet-950 text-slate-700 dark:text-slate-300 font-medium transition">
+            <button type="button" data-ai-prompt="Temporarily paraphrase and reword every question in this set while keeping the exact concepts and answers." class="ai-quick-chip shrink-0 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-violet-100 dark:bg-slate-800 dark:hover:bg-violet-950 text-slate-700 dark:text-slate-300 font-medium transition">
               Paraphrase whole set
             </button>
           </div>
@@ -378,7 +405,7 @@
 
           <!-- Chat Input Bar -->
           <form id="aiChatForm" class="flex items-center gap-2 pt-1">
-            <input id="aiChatInput" type="text" placeholder="Ask a question or command an edit to the whole set..." class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+            <input id="aiChatInput" type="text" placeholder="Ask a question or command a set edit..." class="flex-1 min-w-0 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
             <button id="aiChatSendBtn" type="submit" class="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold shadow-sm transition shrink-0">
               Send
             </button>
@@ -390,17 +417,17 @@
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2">
               <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Question Navigator</p>
-              <button id="jumpNextBlankBtn" type="button" class="hidden px-2.5 py-0.5 rounded-md bg-amber-100 hover:bg-amber-200 dark:bg-amber-950 dark:hover:bg-amber-900 text-amber-800 dark:text-amber-200 text-[11px] font-bold transition">
+              <button id="jumpNextBlankBtn" type="button" class="hidden px-2.5 py-1 rounded-md bg-amber-100 hover:bg-amber-200 dark:bg-amber-950 dark:hover:bg-amber-900 text-amber-800 dark:text-amber-200 text-[11px] font-bold transition">
                 Jump to Next Blank &rarr;
               </button>
             </div>
             <p id="quizAnsweredProgressText" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">0 / 0 Answered</p>
           </div>
-          <div id="quizNavGrid" class="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto"></div>
+          <div id="quizNavGrid" class="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto"></div>
         </div>
 
         <!-- QUIZ RESULTS SCREEN -->
-        <div id="quizReportScreen" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 space-y-6">
+        <div id="quizReportScreen" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-8 space-y-6">
           <div class="text-center space-y-2">
             <span id="reportBadge" class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">PASSED (PRC 70% STANDARD)</span>
             <h3 id="reportScoreText" class="text-3xl sm:text-5xl font-extrabold">85.0%</h3>
@@ -414,16 +441,16 @@
           </div>
 
           <div class="flex flex-wrap justify-center gap-2.5">
-            <button id="retakeSameQuizBtn" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold">Retake Same Quiz</button>
-            <button onclick="openQuizSetupModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold">Start Another Quiz</button>
-            <button id="backToPracticeBtn" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold">Back to Practice</button>
+            <button id="retakeSameQuizBtn" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold">Retake Same Quiz</button>
+            <button onclick="openQuizSetupModal()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold">Start Another Quiz</button>
+            <button id="backToPracticeBtn" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold">Back to Practice</button>
           </div>
 
           <div class="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-2">
               <h4 class="text-sm font-bold">Item-by-Item Results &amp; Solutions (All Answers)</h4>
-              <label class="inline-flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer">
-                <input id="filterWrongOnlyChk" type="checkbox" class="rounded text-indigo-600" />
+              <label class="inline-flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer py-1">
+                <input id="filterWrongOnlyChk" type="checkbox" class="rounded text-indigo-600 w-4 h-4" />
                 <span>Show Incorrect Only</span>
               </label>
             </div>
@@ -434,11 +461,11 @@
 
       <!-- VIEW 3: CARDS MANAGER -->
       <section id="cardsView" class="hidden space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <input id="cardSearchInput" type="text" placeholder="Search questions, answers, or tags..." class="flex-1 min-w-[220px] px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <input id="cardSearchInput" type="search" placeholder="Search questions, answers, or tags..." class="flex-1 min-w-0 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           <div class="flex items-center gap-2">
-            <button onclick="openCardModal(null)" class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs sm:text-sm font-semibold">+ Add Card Manually</button>
-            <button onclick="openBulkModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 text-white text-xs sm:text-sm font-semibold">Import JSON Question Set</button>
+            <button onclick="openCardModal(null)" class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs sm:text-sm font-semibold">+ Add Card</button>
+            <button onclick="openBulkModal()" class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-indigo-600 text-white text-xs sm:text-sm font-semibold">Import JSON</button>
           </div>
         </div>
         <div id="cardsManagerList" class="space-y-2.5"></div>
@@ -446,35 +473,37 @@
     </main>
   </div>
 
-  <!-- Mobile Bottom Navigation -->
-  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-800 grid grid-cols-4 h-14">
-    <button id="mobDecksBtn" class="flex flex-col items-center justify-center text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
-      <span>Folders</span>
-    </button>
-    <button onclick="openQuizSetupModal()" class="flex flex-col items-center justify-center text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      <span>Start Quiz</span>
-    </button>
-    <button onclick="openBulkModal()" class="flex flex-col items-center justify-center text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">
-      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-      <span>JSON Import</span>
-    </button>
-    <button onclick="openSyncModal()" class="flex flex-col items-center justify-center text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
-      <span>Sync</span>
-    </button>
+  <!-- Mobile & iPad Bottom Navigation -->
+  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-800 safe-bottom-nav">
+    <div class="grid grid-cols-4 h-14">
+      <button id="mobDecksBtn" class="flex flex-col items-center justify-center text-[11px] font-semibold text-slate-600 dark:text-slate-300 active:bg-slate-100 dark:active:bg-slate-800">
+        <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+        <span>Folders</span>
+      </button>
+      <button onclick="openQuizSetupModal()" class="flex flex-col items-center justify-center text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 active:bg-slate-100 dark:active:bg-slate-800">
+        <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span>Start Quiz</span>
+      </button>
+      <button onclick="openBulkModal()" class="flex flex-col items-center justify-center text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 active:bg-slate-100 dark:active:bg-slate-800">
+        <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        <span>JSON Import</span>
+      </button>
+      <button onclick="openSyncModal()" class="flex flex-col items-center justify-center text-[11px] font-semibold text-slate-600 dark:text-slate-300 active:bg-slate-100 dark:active:bg-slate-800">
+        <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+        <span>Sync</span>
+      </button>
+    </div>
   </nav>
 
   <!-- MODAL 0: START A QUIZ -->
   <div id="quizSetupModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
-    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-5 space-y-4 shadow-2xl">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full max-h-[90dvh] overflow-y-auto p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
         <div>
           <h3 class="text-base sm:text-lg font-bold">Start a Quiz</h3>
           <p class="text-xs text-slate-500 dark:text-slate-400">All questions must be answered before finalizing &amp; reviewing score</p>
         </div>
-        <button onclick="closeModal('quizSetupModal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">&times;</button>
+        <button onclick="closeModal('quizSetupModal')" class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-lg leading-none">&times;</button>
       </div>
 
       <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
@@ -489,12 +518,12 @@
       <div id="quizSetOptionsWrap" class="space-y-3 text-xs sm:text-sm">
         <div>
           <label class="block text-xs font-semibold mb-1">Select Question Set</label>
-          <select id="quizTargetDeckSelect" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium"></select>
+          <select id="quizTargetDeckSelect" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium"></select>
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold mb-1">Number of Questions</label>
-            <select id="quizSetLimitSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm">
+            <select id="quizSetLimitSelect" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm">
               <option value="all">All Questions in Set</option>
               <option value="10">10 Random Questions</option>
               <option value="25">25 Random Questions</option>
@@ -503,7 +532,7 @@
           </div>
           <div>
             <label class="block text-xs font-semibold mb-1">Question Order</label>
-            <select id="quizSetOrderSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm">
+            <select id="quizSetOrderSelect" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm">
               <option value="random">Randomized</option>
               <option value="ordered">Original Order</option>
             </select>
@@ -514,43 +543,43 @@
       <div id="quizFolderOptionsWrap" class="hidden space-y-3 text-xs sm:text-sm">
         <div>
           <label class="block text-xs font-semibold mb-1">Select Subject Folder (Pulls randomly from this folder only)</label>
-          <select id="quizTargetFolderSelect" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium"></select>
+          <select id="quizTargetFolderSelect" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium"></select>
         </div>
         <div class="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-xs space-y-1">
-          <p class="font-bold text-amber-800 dark:text-amber-300">100-Question PRC Board Simulation</p>
+          <p class="font-bold text-amber-800 dark:text-amber-300">100-Question Board Simulation</p>
           <p id="quizFolderPoolInfo" class="text-slate-600 dark:text-slate-300">Select a folder to see how many total questions are inside it.</p>
         </div>
       </div>
 
       <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-        <button onclick="closeModal('quizSetupModal')" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold">Cancel</button>
-        <button id="launchQuizBtn" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition">Begin Quiz</button>
+        <button onclick="closeModal('quizSetupModal')" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold">Cancel</button>
+        <button id="launchQuizBtn" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition">Begin Quiz</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL 1: JSON BULK IMPORT -->
   <div id="bulkModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
-    <div id="bulkModalCard" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl transition">
+    <div id="bulkModalCard" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-2xl w-full max-h-[90dvh] flex flex-col shadow-2xl transition">
       <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
         <div>
           <h3 class="text-base sm:text-lg font-bold">Import JSON Question Set</h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Drag &amp; drop a .json file anywhere or choose one below to auto-create</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Choose a .json file from your phone/iPad or paste JSON below</p>
         </div>
-        <button onclick="closeModal('bulkModal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">&times;</button>
+        <button onclick="closeModal('bulkModal')" class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-lg leading-none">&times;</button>
       </div>
 
       <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
         <div class="flex flex-wrap items-center gap-2">
-          <label class="cursor-pointer px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm transition">
+          <label class="cursor-pointer px-3.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
             <span>Choose .json File</span>
             <input id="bulkJsonFileInput" type="file" accept=".json,application/json" class="hidden" />
           </label>
-          <button id="insertSampleJsonBtn" type="button" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold transition">
+          <button id="insertSampleJsonBtn" type="button" class="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold transition">
             Insert Sample JSON
           </button>
-          <button id="copySchemaBtn" type="button" class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition">
+          <button id="copySchemaBtn" type="button" class="px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition">
             Copy JSON Schema
           </button>
         </div>
@@ -558,40 +587,40 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold mb-1">Destination Mode</label>
-            <select id="bulkDeckSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm"></select>
+            <select id="bulkDeckSelect" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"></select>
           </div>
           <div id="bulkFolderWrap">
             <label class="block text-xs font-semibold mb-1">Assign to Folder (Optional)</label>
-            <select id="bulkFolderSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm"></select>
+            <select id="bulkFolderSelect" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"></select>
           </div>
           <div id="bulkNewDeckWrap" class="sm:col-span-2">
             <label class="block text-xs font-semibold mb-1">New Question Set Name (Auto-filled from JSON filename)</label>
-            <input id="bulkNewDeckName" type="text" placeholder="e.g., Differential Calculus 1 Quiz" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium" />
+            <input id="bulkNewDeckName" type="text" placeholder="e.g., Differential Calculus 1 Quiz" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium" />
           </div>
         </div>
 
         <div>
-          <textarea id="bulkJsonInput" rows="9" placeholder='Drop a .json file onto this window or paste valid JSON here...' class="w-full p-3 rounded-xl bg-slate-950 text-emerald-300 font-mono text-xs border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+          <textarea id="bulkJsonInput" rows="7" placeholder='Choose a .json file above or paste valid JSON here...' class="w-full p-3 rounded-xl bg-slate-950 text-emerald-300 font-mono text-xs border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
         </div>
 
         <div id="bulkValidationStatus" class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300">
-          Drop a .json file anywhere or paste valid JSON above to create a new question set.
+          Choose a .json file or paste valid JSON above to create a new question set.
         </div>
       </div>
 
       <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
-        <button onclick="closeModal('bulkModal')" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold">Cancel</button>
-        <button id="confirmBulkImportBtn" disabled class="px-4 py-2 rounded-xl bg-indigo-600 disabled:opacity-40 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold transition">Add Question Set</button>
+        <button onclick="closeModal('bulkModal')" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold">Cancel</button>
+        <button id="confirmBulkImportBtn" disabled class="px-4 py-2.5 rounded-xl bg-indigo-600 disabled:opacity-40 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold transition">Add Question Set</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL 2: ADD / EDIT SINGLE CARD -->
   <div id="cardModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
-    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-5 space-y-4 shadow-2xl">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full max-h-[90dvh] overflow-y-auto p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
         <h3 id="cardModalTitle" class="text-base sm:text-lg font-bold">Add Question Card</h3>
-        <button onclick="closeModal('cardModal')" class="p-1 text-slate-400">&times;</button>
+        <button onclick="closeModal('cardModal')" class="p-2 text-slate-400 text-lg leading-none">&times;</button>
       </div>
       <input type="hidden" id="editCardId" />
       <div class="space-y-3 text-xs sm:text-sm">
@@ -629,18 +658,18 @@
         </div>
       </div>
       <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeModal('cardModal')" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold">Cancel</button>
-        <button id="saveCardBtn" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold">Save Card</button>
+        <button onclick="closeModal('cardModal')" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold">Cancel</button>
+        <button id="saveCardBtn" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold">Save Card</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL 3: LIVE CLOUD SYNC & BACKUP -->
   <div id="syncModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
-    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 space-y-4 shadow-2xl">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full max-h-[90dvh] overflow-y-auto p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
         <h3 class="text-base sm:text-lg font-bold">Live Cloud Sync &amp; Backup</h3>
-        <button onclick="closeModal('syncModal')" class="p-1 text-slate-400">&times;</button>
+        <button onclick="closeModal('syncModal')" class="p-2 text-slate-400 text-lg leading-none">&times;</button>
       </div>
 
       <div class="p-4 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/70 space-y-3 text-xs">
@@ -649,30 +678,30 @@
           <span id="cloudModalBadge" class="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-[11px] font-semibold">Not Connected</span>
         </div>
         <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
-          Enter the same <strong>Sync Room ID</strong> on both your laptop and phone. Everything uploaded on one device will automatically sync to the other.
+          Enter the same <strong>Sync Room ID</strong> on your laptop, iPad, and phone. Everything uploaded on one device will automatically sync to the others.
         </p>
         <div class="space-y-2">
           <div>
             <label class="block font-semibold mb-1">Firebase Database URL</label>
-            <input id="firebaseUrlInput" type="url" value="https://review-d33bf-default-rtdb.asia-southeast1.firebasedatabase.app" class="w-full p-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 font-mono text-xs" />
+            <input id="firebaseUrlInput" type="url" value="https://review-d33bf-default-rtdb.asia-southeast1.firebasedatabase.app" class="w-full p-2.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 font-mono text-xs" />
           </div>
           <div>
             <label class="block font-semibold mb-1">Sync Room ID (Your Secret Key)</label>
-            <input id="firebaseRoomInput" type="text" placeholder="e.g., erick-ece-2027" class="w-full p-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 font-mono text-xs" />
+            <input id="firebaseRoomInput" type="text" placeholder="e.g., erick-ece-2027" class="w-full p-2.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 font-mono text-xs" />
           </div>
         </div>
         <div class="flex flex-wrap gap-2 pt-1">
-          <button id="connectCloudBtn" class="px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold">Save &amp; Sync Now</button>
-          <button id="pullCloudBtn" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">Pull Latest from Cloud</button>
-          <button id="disconnectCloudBtn" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 font-semibold">Disconnect</button>
+          <button id="connectCloudBtn" class="px-3.5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold">Save &amp; Sync Now</button>
+          <button id="pullCloudBtn" class="px-3.5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">Pull Latest from Cloud</button>
+          <button id="disconnectCloudBtn" class="px-3.5 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 font-semibold">Disconnect</button>
         </div>
       </div>
 
       <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
         <p class="font-semibold">2. Offline JSON File Backup</p>
         <div class="flex flex-wrap gap-2 pt-1">
-          <button id="downloadBackupBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 dark:bg-slate-700 text-white font-semibold">Download .json Backup</button>
-          <label class="cursor-pointer px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 font-semibold">
+          <button id="downloadBackupBtn" class="px-3.5 py-2 rounded-lg bg-slate-800 dark:bg-slate-700 text-white font-semibold">Download .json Backup</button>
+          <label class="cursor-pointer px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-600 font-semibold">
             Restore .json Backup
             <input id="restoreBackupInput" type="file" accept=".json,application/json" class="hidden" />
           </label>
@@ -681,12 +710,24 @@
     </div>
   </div>
 
-  <!-- MODAL 4: SHORTCUTS -->
+  <!-- MODAL 4: TOUCH-FRIENDLY MOVE DECK TO FOLDER -->
+  <div id="moveFolderModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-sm w-full max-h-[85dvh] overflow-y-auto p-5 space-y-3 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-base truncate pr-2">Move Question Set</h3>
+        <button onclick="closeModal('moveFolderModal')" class="p-1.5 text-slate-400 text-lg leading-none">&times;</button>
+      </div>
+      <p id="moveFolderDeckLabel" class="text-xs text-slate-500 dark:text-slate-400 truncate"></p>
+      <div id="moveFolderChoicesList" class="space-y-1.5 pt-1"></div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: SHORTCUTS -->
   <div id="shortcutsModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-sm w-full p-5 space-y-3 shadow-2xl">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-sm w-full max-h-[90dvh] overflow-y-auto p-5 space-y-3 shadow-2xl">
       <div class="flex items-center justify-between">
         <h3 class="font-bold text-base">Keyboard Shortcuts</h3>
-        <button onclick="closeModal('shortcutsModal')" class="text-slate-400">&times;</button>
+        <button onclick="closeModal('shortcutsModal')" class="p-1 text-slate-400 text-lg leading-none">&times;</button>
       </div>
       <div class="space-y-2 text-xs">
         <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800"><span>Flip Flashcard</span><kbd class="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 rounded">Space / Up / Down</kbd></div>
@@ -699,7 +740,7 @@
 
   <script>
     // =========================================================================
-    // PASTE YOUR GOOGLE AI STUDIO GEMINI API KEY BELOW:
+    // OPTIONAL DIRECT GEMINI API KEY (Leave blank to use /.netlify/functions/gemini):
     // =========================================================================
     const GEMINI_API_KEY = ['AQ.Ab8RN6Kg1HlH1I-_', 'cRiGjsNwuLDVbFKveVn5GpEM9zroMTH6og'].join('');
     const GEMINI_MODEL = 'gemini-3.5-flash-lite';
@@ -866,7 +907,7 @@
     function showToast(msg, isError = false) {
       const el = document.getElementById('toastBanner');
       el.textContent = msg;
-      el.className = `fixed top-4 right-4 z-[60] px-4 py-3 rounded-xl text-white text-xs sm:text-sm font-semibold shadow-lg transition ${isError ? 'bg-rose-600' : 'bg-emerald-600'}`;
+      el.className = `fixed top-4 left-4 right-4 sm:left-auto sm:right-4 z-[60] px-4 py-3 rounded-xl text-white text-xs sm:text-sm font-semibold shadow-lg transition text-center sm:text-left ${isError ? 'bg-rose-600' : 'bg-emerald-600'}`;
       el.classList.remove('hidden');
       clearTimeout(el._timer);
       el._timer = setTimeout(() => el.classList.add('hidden'), 3500);
@@ -922,8 +963,8 @@
 
       const bubble = document.createElement('div');
       bubble.className = isUser
-        ? 'max-w-[85%] px-3.5 py-2 rounded-2xl rounded-br-sm bg-violet-600 text-white text-xs sm:text-sm leading-relaxed'
-        : 'max-w-[92%] px-3.5 py-2.5 rounded-2xl rounded-bl-sm bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap';
+        ? 'max-w-[85%] px-3.5 py-2 rounded-2xl rounded-br-sm bg-violet-600 text-white text-xs sm:text-sm leading-relaxed break-words'
+        : 'max-w-[92%] px-3.5 py-2.5 rounded-2xl rounded-bl-sm bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words';
 
       if (badgeText) {
         const badge = document.createElement('div');
@@ -999,12 +1040,6 @@
     }
 
     async function sendAiChatCommand(userPrompt) {
-      const apiKey = (GEMINI_API_KEY || '').trim();
-      if (!apiKey || apiKey === 'PASTE_YOUR_GEMINI_API_KEY_HERE') {
-        showToast('Paste your Gemini API key into GEMINI_API_KEY in index.html first.', true);
-        return;
-      }
-
       const trimmed = userPrompt.trim();
       if (!trimmed) return;
 
@@ -1057,21 +1092,31 @@
         aiChatHistory = aiChatHistory.slice(-10);
       }
 
+      const apiKey = (GEMINI_API_KEY || '').trim();
+      const requestPayload = {
+        systemInstruction: { parts: [{ text: systemInstructionText }] },
+        contents: aiChatHistory,
+        generationConfig: { responseMimeType: 'application/json' }
+      };
+
       try {
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`,
-          {
+        let res;
+        if (apiKey && apiKey !== 'PASTE_YOUR_GEMINI_API_KEY_HERE') {
+          res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(requestPayload)
+            }
+          );
+        } else {
+          res = await fetch('/.netlify/functions/gemini', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              systemInstruction: { parts: [{ text: systemInstructionText }] },
-              contents: aiChatHistory,
-              generationConfig: {
-                responseMimeType: 'application/json'
-              }
-            })
-          }
-        );
+            body: JSON.stringify({ model: GEMINI_MODEL, payload: requestPayload })
+          });
+        }
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
@@ -1169,7 +1214,7 @@
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         updateCloudStatusUI('ok');
-        if (!silent) showToast('Synced to cloud! Open on your phone to see updates.');
+        if (!silent) showToast('Synced to cloud! Open on your phone or iPad to see updates.');
       } catch (err) {
         updateCloudStatusUI('error');
         if (!silent) showToast('Cloud push failed. Check Firebase URL & Rules.', true);
@@ -1282,6 +1327,33 @@
       renderAll();
     }
 
+    function openMoveFolderModal(deckId) {
+      const deck = state.decks.find(d => d.id === deckId);
+      if (!deck) return;
+      document.getElementById('moveFolderDeckLabel').textContent = `Set: "${deck.title}"`;
+      const list = document.getElementById('moveFolderChoicesList');
+      list.innerHTML = '';
+
+      const options = [{ id: '', name: 'No Folder (Unfiled)' }, ...state.folders];
+      options.forEach(opt => {
+        const isCurrent = (deck.folderId || '') === opt.id;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'w-full text-left px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm font-semibold flex items-center justify-between transition ' +
+          (isCurrent
+            ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300'
+            : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800');
+        btn.innerHTML = `<span>${escapeHtml(opt.name)}</span>${isCurrent ? '<span class="text-[11px] font-bold">Current</span>' : ''}`;
+        btn.onclick = () => {
+          moveDeckToFolder(deck.id, opt.id);
+          closeModal('moveFolderModal');
+        };
+        list.appendChild(btn);
+      });
+
+      openModal('moveFolderModal');
+    }
+
     function createDeckRowEl(deck) {
       const count = deck.cards.length;
       const mastered = deck.cards.filter(c => (c.mastery || 0) >= 3).length;
@@ -1290,14 +1362,14 @@
 
       const row = document.createElement('div');
       row.draggable = true;
-      row.className = 'group flex items-center justify-between p-2 rounded-xl cursor-grab active:cursor-grabbing transition ' +
+      row.className = 'group flex items-center justify-between p-2.5 lg:p-2 rounded-xl cursor-pointer lg:cursor-grab lg:active:cursor-grabbing transition ' +
         (isActive
           ? 'bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 font-semibold'
           : 'hover:bg-slate-100 dark:hover:bg-slate-800/70 text-slate-700 dark:text-slate-300');
 
       row.innerHTML = `
         <div class="min-w-0 flex-1 pr-1 flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-slate-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z"/></svg>
+          <svg class="hidden lg:block w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-slate-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z"/></svg>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-1.5">
               <span class="w-2 h-2 rounded-full shrink-0" style="background:${deck.color || '#4f46e5'}"></span>
@@ -1306,7 +1378,10 @@
             <div class="text-[10px] text-slate-400 mt-0.5 pl-3.5">${count} cards &bull; ${pct}% mastered</div>
           </div>
         </div>
-        ${state.decks.length > 1 ? `<button data-del-deck="${deck.id}" class="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-500 text-xs" title="Delete Question Set">&times;</button>` : ''}
+        <div class="flex items-center gap-0.5 shrink-0">
+          ${state.folders.length > 0 ? `<button data-move-deck="${deck.id}" class="p-1.5 text-slate-400 hover:text-indigo-600 text-xs" title="Move to Folder">&#128193;</button>` : ''}
+          ${state.decks.length > 1 ? `<button data-del-deck="${deck.id}" class="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 p-1.5 text-slate-400 hover:text-rose-500 text-sm leading-none" title="Delete Question Set">&times;</button>` : ''}
+        </div>
       `;
 
       row.addEventListener('dragstart', (e) => {
@@ -1325,6 +1400,11 @@
       });
 
       row.addEventListener('click', (e) => {
+        if (e.target.dataset.moveDeck) {
+          e.stopPropagation();
+          openMoveFolderModal(deck.id);
+          return;
+        }
         if (e.target.dataset.delDeck) {
           e.stopPropagation();
           if (confirm('Delete question set "' + deck.title + '"?')) {
@@ -1386,19 +1466,19 @@
         attachFolderDropEvents(folderWrap, folder.id);
 
         const header = document.createElement('div');
-        header.className = 'group flex items-center justify-between px-2.5 py-2 cursor-pointer hover:bg-slate-100/80 dark:hover:bg-slate-800/60 transition';
+        header.className = 'group flex items-center justify-between px-2.5 py-2.5 lg:py-2 cursor-pointer hover:bg-slate-100/80 dark:hover:bg-slate-800/60 transition';
         header.innerHTML = `
           <div class="flex items-center gap-1.5 min-w-0 flex-1">
-            <svg class="w-3.5 h-3.5 text-slate-400 transition-transform ${folder.collapsed ? '-rotate-90' : ''}" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-3.5 h-3.5 text-slate-400 transition-transform shrink-0 ${folder.collapsed ? '-rotate-90' : ''}" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
             <svg class="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
             <span class="text-xs font-bold truncate">${escapeHtml(folder.name)}</span>
-            <span class="text-[10px] text-slate-400 font-medium">(${folderQCount}q)</span>
+            <span class="text-[10px] text-slate-400 font-medium shrink-0">(${folderQCount}q)</span>
           </div>
-          <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
-            <button data-quiz-folder="${folder.id}" class="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold" title="Start 100-Question Folder Quiz">100Q</button>
-            <button data-add-in-folder="${folder.id}" class="p-1 text-slate-400 hover:text-indigo-600 text-xs font-bold" title="New Set in Folder">+</button>
-            <button data-ren-folder="${folder.id}" class="p-1 text-slate-400 hover:text-slate-600 text-[11px]" title="Rename Folder">&#9998;</button>
-            <button data-del-folder="${folder.id}" class="p-1 text-slate-400 hover:text-rose-500 text-xs" title="Delete Folder">&times;</button>
+          <div class="flex items-center gap-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition shrink-0">
+            <button data-quiz-folder="${folder.id}" class="px-1.5 py-1 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold" title="Start 100-Question Folder Quiz">100Q</button>
+            <button data-add-in-folder="${folder.id}" class="p-1.5 text-slate-400 hover:text-indigo-600 text-xs font-bold" title="New Set in Folder">+</button>
+            <button data-ren-folder="${folder.id}" class="p-1.5 text-slate-400 hover:text-slate-600 text-[11px]" title="Rename Folder">&#9998;</button>
+            <button data-del-folder="${folder.id}" class="p-1.5 text-slate-400 hover:text-rose-500 text-sm leading-none" title="Delete Folder">&times;</button>
           </div>
         `;
 
@@ -1445,7 +1525,7 @@
           const body = document.createElement('div');
           body.className = 'px-2 pb-2 pt-0.5 space-y-1 border-t border-slate-200/50 dark:border-slate-800/70';
           if (folderDecks.length === 0) {
-            body.innerHTML = `<p class="text-[11px] text-slate-400 py-1.5 px-2 italic">Drop a question set here</p>`;
+            body.innerHTML = `<p class="text-[11px] text-slate-400 py-1.5 px-2 italic">No question sets in this folder yet</p>`;
           } else {
             folderDecks.forEach(d => body.appendChild(createDeckRowEl(d)));
           }
@@ -1463,7 +1543,7 @@
       if (state.folders.length > 0) {
         const lbl = document.createElement('p');
         lbl.className = 'text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 pt-1';
-        lbl.textContent = 'Unfiled Question Sets (Drop here to unfile)';
+        lbl.textContent = 'Unfiled Question Sets';
         unfiledZone.appendChild(lbl);
       }
       unfiledDecks.forEach(d => unfiledZone.appendChild(createDeckRowEl(d)));
@@ -1472,6 +1552,10 @@
       document.getElementById('globalMasteryText').textContent = `${totalMastered} / ${totalCards} Mastered`;
       document.getElementById('streakCount').textContent = state.streak;
       document.getElementById('todayCount').textContent = state.todayCount;
+      const mobStreak = document.getElementById('streakCountMobile');
+      const mobToday = document.getElementById('todayCountMobile');
+      if (mobStreak) mobStreak.textContent = state.streak;
+      if (mobToday) mobToday.textContent = state.todayCount;
     }
 
     function promptCreateDeck(defaultFolderId = '') {
@@ -1538,7 +1622,7 @@
 
       document.querySelectorAll('.mode-btn').forEach(btn => {
         const active = btn.dataset.mode === state.mode;
-        btn.className = 'mode-btn px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition ' +
+        btn.className = 'mode-btn px-2 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition ' +
           (active
             ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white');
@@ -1695,7 +1779,7 @@
     function updateFolderQuizPoolInfo() {
       const infoEl = document.getElementById('quizFolderPoolInfo');
       if (state.folders.length === 0) {
-        infoEl.textContent = 'Create a folder in the left sidebar and drag question sets into it first.';
+        infoEl.textContent = 'Create a folder in the sidebar and assign question sets to it first.';
         return;
       }
       const folderId = document.getElementById('quizTargetFolderSelect').value;
@@ -1705,7 +1789,7 @@
       const drawCount = Math.min(100, totalQ);
 
       if (totalQ === 0) {
-        infoEl.textContent = `Folder "${folder ? folder.name : ''}" currently has 0 questions. Drag question sets into this folder first.`;
+        infoEl.textContent = `Folder "${folder ? folder.name : ''}" currently has 0 questions. Assign question sets to this folder first.`;
       } else if (totalQ < 100) {
         infoEl.textContent = `Folder "${folder.name}" has ${totalQ} questions across ${fDecks.length} set(s). All ${drawCount} questions will be randomized (add more sets to reach 100).`;
       } else {
@@ -1932,11 +2016,11 @@
                         : 'border-rose-200 bg-rose-50/40 dark:border-rose-900 dark:bg-rose-950/20');
           item.innerHTML = `
             <div class="flex items-center justify-between gap-2">
-              <span class="font-bold">${it.num}. ${escapeHtml(it.question)}</span>
+              <span class="font-bold break-words">${it.num}. ${escapeHtml(it.question)}</span>
               ${r.isFolderLong ? `<span class="px-2 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-[10px] font-semibold shrink-0">${escapeHtml(it.deckTitle)}</span>` : ''}
             </div>
             <p>Your Answer: <span class="font-semibold">${escapeHtml(it.userAns || 'Unanswered')}</span> &bull; Correct: <span class="font-bold text-emerald-600 dark:text-emerald-400">${escapeHtml(it.answer)}</span></p>
-            ${it.formula ? `<p class="text-slate-500 dark:text-slate-400">${escapeHtml(it.formula)}</p>` : ''}
+            ${it.formula ? `<p class="text-slate-500 dark:text-slate-400 break-words">${escapeHtml(it.formula)}</p>` : ''}
           `;
           reviewList.appendChild(item);
         });
@@ -1956,8 +2040,8 @@
       const quizTab = document.getElementById('mcqQuizTab');
       const isPractice = state.mcqSubMode === 'practice';
 
-      practiceTab.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition ' + (isPractice ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500');
-      quizTab.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition ' + (!isPractice ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500');
+      practiceTab.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition ' + (isPractice ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500');
+      quizTab.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition ' + (!isPractice ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500');
 
       document.getElementById('practiceShuffleControls').classList.toggle('hidden', !isPractice || !deck.cards.length);
       document.getElementById('mcqOrderedDeckBtn').classList.toggle('hidden', !state.mcqShuffled && !state.tempAiSetActive);
@@ -2063,7 +2147,7 @@
 
       const flagBtn = document.getElementById('mcqFlagBtn');
       flagBtn.textContent = state.mcqFlags[item.key] ? 'Flagged' : 'Flag';
-      flagBtn.className = 'px-2 py-0.5 rounded border text-xs font-semibold ' +
+      flagBtn.className = 'px-2.5 py-1 rounded border text-xs font-semibold ' +
         (state.mcqFlags[item.key] ? 'border-amber-400 bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300' : 'border-slate-300 dark:border-slate-700 text-slate-500');
 
       const list = document.getElementById('mcqChoicesList');
@@ -2075,7 +2159,7 @@
         const isSelected = chosen === choiceText;
         const isCorrect = choiceText.trim().toLowerCase() === card.answer.trim().toLowerCase();
 
-        let style = 'border-slate-200 dark:border-slate-800 hover:border-indigo-400 bg-slate-50/60 dark:bg-slate-800/50';
+        let style = 'border-slate-200 dark:border-slate-800 hover:border-indigo-400 active:border-indigo-500 bg-slate-50/60 dark:bg-slate-800/50';
         if (isPractice && chosen !== undefined) {
           if (isCorrect) style = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 font-semibold';
           else if (isSelected) style = 'border-rose-500 bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200';
@@ -2083,10 +2167,10 @@
           style = 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-200 font-semibold';
         }
 
-        btn.className = `w-full text-left p-3.5 rounded-xl border-2 transition flex items-start gap-3 text-xs sm:text-sm ${style}`;
+        btn.className = `w-full min-h-[48px] text-left p-3.5 rounded-xl border-2 transition flex items-start gap-3 text-xs sm:text-sm ${style}`;
         btn.innerHTML = `
           <span class="w-6 h-6 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-xs font-bold shrink-0">${letters[idx]}</span>
-          <span class="pt-0.5 leading-snug">${escapeHtml(choiceText)}</span>
+          <span class="pt-0.5 leading-snug break-words">${escapeHtml(choiceText)}</span>
         `;
         btn.addEventListener('click', () => handleSelectMcq(choiceText));
         list.appendChild(btn);
@@ -2117,7 +2201,7 @@
           const answered = state.mcqAnswers[navItem.key] !== undefined;
           const flagged = !!state.mcqFlags[navItem.key];
           const current = pos === state.mcqIndex;
-          b.className = 'w-8 h-8 rounded-lg text-xs font-bold border transition ' +
+          b.className = 'w-9 h-9 rounded-lg text-xs font-bold border transition ' +
             (current ? 'ring-2 ring-indigo-500 ' : '') +
             (flagged ? 'bg-amber-100 border-amber-400 text-amber-800 dark:bg-amber-950 dark:text-amber-200'
               : answered ? 'bg-indigo-600 border-indigo-600 text-white'
@@ -2161,20 +2245,20 @@
 
       filtered.forEach(card => {
         const row = document.createElement('div');
-        row.className = 'bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-start justify-between gap-3';
+        row.className = 'bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-start justify-between gap-3';
         row.innerHTML = `
           <div class="space-y-1 min-w-0">
             <div class="flex items-center gap-2">
               <span class="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-[11px] font-semibold">${escapeHtml(card.tag || 'General')}</span>
               <span class="text-[11px] text-slate-400">${(card.choices && card.choices.length) || 1} choices</span>
             </div>
-            <p class="text-sm font-semibold">${escapeHtml(card.question)}</p>
-            <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400">Answer: ${escapeHtml(card.answer)}</p>
-            ${card.formula ? `<p class="text-xs text-slate-500 dark:text-slate-400 truncate">${escapeHtml(card.formula)}</p>` : ''}
+            <p class="text-sm font-semibold break-words">${escapeHtml(card.question)}</p>
+            <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400 break-words">Answer: ${escapeHtml(card.answer)}</p>
+            ${card.formula ? `<p class="text-xs text-slate-500 dark:text-slate-400 break-words">${escapeHtml(card.formula)}</p>` : ''}
           </div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <button data-edit-card="${card.id}" class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800">Edit</button>
-            <button data-del-card="${card.id}" class="px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-900 text-rose-600 text-xs font-semibold hover:bg-rose-50 dark:hover:bg-rose-950">Del</button>
+          <div class="flex items-center gap-2 shrink-0 self-end sm:self-start">
+            <button data-edit-card="${card.id}" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800">Edit</button>
+            <button data-del-card="${card.id}" class="px-3 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900 text-rose-600 text-xs font-semibold hover:bg-rose-50 dark:hover:bg-rose-950">Del</button>
           </div>
         `;
         row.querySelector('[data-edit-card]').onclick = () => openCardModal(card);
@@ -2310,7 +2394,7 @@
         detectedJsonTitle = '';
         btn.disabled = true;
         box.className = 'p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300';
-        box.textContent = 'Drop a .json file anywhere or paste valid JSON above to create a new question set.';
+        box.textContent = 'Choose a .json file or paste valid JSON above to create a new question set.';
         return;
       }
 
@@ -2377,7 +2461,7 @@
     function handleDroppedOrSelectedJsonFile(file, autoSubmit = true) {
       if (!file) return;
       if (!file.name.toLowerCase().endsWith('.json') && file.type !== 'application/json') {
-        showToast('Please drop a valid .json file.', true);
+        showToast('Please select a valid .json file.', true);
         return;
       }
 
@@ -2424,7 +2508,7 @@
       });
 
       const folderSel = document.getElementById('bulkFolderSelect');
-      folderSel.innerHTML = '<option value="">No Folder (Unfiled — Drag later)</option>';
+      folderSel.innerHTML = '<option value="">No Folder (Unfiled)</option>';
       state.folders.forEach(f => {
         const opt = document.createElement('option');
         opt.value = f.id;
@@ -2550,14 +2634,14 @@
         });
       });
 
-      document.getElementById('mobileMenuBtn').onclick = () => {
+      const openSidebar = () => {
         document.getElementById('sidebar').classList.remove('-translate-x-full');
         document.getElementById('sidebarBackdrop').classList.remove('hidden');
       };
-      document.getElementById('mobDecksBtn').onclick = () => {
-        document.getElementById('sidebar').classList.remove('-translate-x-full');
-        document.getElementById('sidebarBackdrop').classList.remove('hidden');
-      };
+
+      document.getElementById('mobileMenuBtn').onclick = openSidebar;
+      document.getElementById('mobDecksBtn').onclick = openSidebar;
+      document.getElementById('closeSidebarMobileBtn').onclick = closeMobileSidebar;
       document.getElementById('sidebarBackdrop').onclick = closeMobileSidebar;
 
       document.getElementById('themeToggleBtn').onclick = () => {
@@ -2649,10 +2733,17 @@
       });
 
       let touchStartX = 0;
-      fcEl.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+      let touchStartY = 0;
+      fcEl.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+      }, { passive: true });
       fcEl.addEventListener('touchend', e => {
         const dx = e.changedTouches[0].screenX - touchStartX;
-        if (Math.abs(dx) > 60) rateCurrentFlashcard(dx > 0 ? 3 : 1);
+        const dy = e.changedTouches[0].screenY - touchStartY;
+        if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+          rateCurrentFlashcard(dx > 0 ? 3 : 1);
+        }
       });
 
       function rateCurrentFlashcard(rating) {
@@ -2724,7 +2815,7 @@
         const panel = document.getElementById('aiAssistantPanel');
         panel.classList.toggle('hidden');
         if (!panel.classList.contains('hidden')) {
-          document.getElementById('aiChatInput').focus();
+          panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
       };
 
