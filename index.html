@@ -101,9 +101,9 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
           <span>JSON Import</span>
         </button>
-        <button id="openSyncBtn" class="p-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition" title="Cloud Sync & Backup">
+        <button id="openSyncBtn" class="p-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition" title="Private Room Sync & Backup">
           <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
-          <span class="hidden sm:inline" id="cloudStatusLabel">Sync</span>
+          <span class="hidden sm:inline max-w-[130px] truncate" id="cloudStatusLabel">Connect Cloud</span>
         </button>
         <button id="themeToggleBtn" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
           <svg class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
@@ -173,20 +173,22 @@
           <div class="flex items-center gap-2 flex-wrap">
             <span id="activeFolderBadge" class="hidden px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60"></span>
             <div class="flex items-center gap-2 min-w-0">
-              <span id="activeDeckDot" class="w-3 h-3 rounded-full bg-indigo-500 shrink-0"></span>
-              <h2 id="activeDeckTitle" class="text-lg sm:text-2xl font-bold tracking-tight truncate">Deck Title</h2>
-              <button id="renameDeckBtn" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 shrink-0" title="Rename Question Set">
+              <span id="activeDeckDot" class="w-3 h-3 rounded-full bg-slate-400 shrink-0"></span>
+              <h2 id="activeDeckTitle" class="text-lg sm:text-2xl font-bold tracking-tight truncate">No Cloud Room Connected</h2>
+              <button id="renameDeckBtn" class="hidden p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 shrink-0" title="Rename Question Set">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
               </button>
             </div>
           </div>
           <div class="flex flex-wrap items-center gap-2 mt-1.5">
-            <p id="activeDeckMeta" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">0 cards in set</p>
-            <span class="text-slate-300 dark:text-slate-700">&bull;</span>
-            <label class="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-              <span>Folder:</span>
-              <select id="activeDeckFolderSelect" class="px-2 py-1 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none"></select>
-            </label>
+            <p id="activeDeckMeta" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Connect to a Cloud Sync Room to load or create folders, decks &amp; cards</p>
+            <span id="activeFolderWrap" class="hidden inline-flex items-center gap-1.5">
+              <span class="text-slate-300 dark:text-slate-700">&bull;</span>
+              <label class="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                <span>Folder:</span>
+                <select id="activeDeckFolderSelect" class="px-2 py-1 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none"></select>
+              </label>
+            </span>
           </div>
         </div>
 
@@ -207,8 +209,8 @@
       <!-- VIEW 1: FLASHCARDS -->
       <section id="flashcardsView" class="space-y-4">
         <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-          <span id="fcProgressText">Card 1 of 1</span>
-          <div class="flex items-center gap-3">
+          <span id="fcProgressText">0 cards</span>
+          <div id="fcHeaderActions" class="hidden flex items-center gap-3">
             <button id="fcShuffleBtn" class="py-1 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium">Shuffle Set</button>
             <button id="fcResetBtn" class="py-1 hover:text-rose-600 dark:hover:text-rose-400 font-medium">Reset Mastery</button>
           </div>
@@ -218,16 +220,15 @@
           <div id="fcProgressBar" class="h-full bg-indigo-600 transition-all duration-300" style="width: 0%"></div>
         </div>
 
-        <div id="fcEmptyState" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 sm:p-10 text-center">
-          <p class="text-base font-semibold mb-1">No cards in this set yet</p>
-          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Import a .json file or add cards manually.</p>
-          <div class="flex flex-wrap justify-center gap-2">
-            <button onclick="openBulkModal()" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold">Import JSON Questions</button>
-            <button onclick="openCardModal(null)" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold">+ Add Card Manually</button>
+        <div id="fcEmptyState" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 sm:p-10 text-center">
+          <p id="fcEmptyTitle" class="text-base font-semibold mb-1">Cloud Sync Disconnected</p>
+          <p id="fcEmptyDesc" class="text-sm text-slate-500 dark:text-slate-400 mb-4">Connect to a Sync Room to load your saved folders, decks, and cards.</p>
+          <div id="fcEmptyActions" class="flex flex-wrap justify-center gap-2">
+            <button onclick="openSyncModal()" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm">Connect / Create Sync Room</button>
           </div>
         </div>
 
-        <div id="fcStage" class="perspective max-w-3xl mx-auto">
+        <div id="fcStage" class="hidden perspective max-w-3xl mx-auto">
           <div id="flashcardEl" class="flip-grid w-full cursor-pointer preserve-3d select-none touch-pan-y">
             <!-- Front Face -->
             <div class="flip-face min-h-[290px] sm:min-h-[360px] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-8 flex flex-col justify-between">
@@ -258,7 +259,7 @@
           </div>
         </div>
 
-        <div id="fcControls" class="max-w-3xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 pt-1">
+        <div id="fcControls" class="hidden max-w-3xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 pt-1">
           <button data-rate="1" class="rate-btn py-3 px-2 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300 text-xs sm:text-sm font-semibold transition">1 &bull; Again</button>
           <button data-rate="2" class="rate-btn py-3 px-2 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/60 text-amber-700 dark:text-amber-300 text-xs sm:text-sm font-semibold transition">2 &bull; Hard</button>
           <button data-rate="3" class="rate-btn py-3 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm font-semibold transition">3 &bull; Good</button>
@@ -275,7 +276,7 @@
           </div>
 
           <!-- Practice Shuffle Controls -->
-          <div id="practiceShuffleControls" class="flex items-center gap-1.5">
+          <div id="practiceShuffleControls" class="hidden flex items-center gap-1.5">
             <button id="mcqShuffleDeckBtn" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/80 dark:hover:bg-indigo-900/70 border border-indigo-200/80 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 text-xs font-semibold inline-flex items-center gap-1.5 transition" title="Randomize question order in this set only">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
               <span>Shuffle Set</span>
@@ -329,15 +330,14 @@
           </button>
         </div>
 
-        <div id="mcqEmptyBox" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-7 sm:p-8 text-center space-y-3">
-          <p class="text-sm text-slate-500">No questions available here yet. Import a .json file or add cards manually.</p>
-          <div class="flex flex-wrap justify-center gap-2">
-            <button onclick="openBulkModal()" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold">Import JSON</button>
-            <button onclick="openCardModal(null)" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold">+ Add Card Manually</button>
+        <div id="mcqEmptyBox" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-7 sm:p-8 text-center space-y-3">
+          <p id="mcqEmptyText" class="text-sm text-slate-500">Cloud Sync is disconnected. Connect to a Sync Room to load your question sets.</p>
+          <div id="mcqEmptyActions" class="flex flex-wrap justify-center gap-2">
+            <button onclick="openSyncModal()" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm">Connect / Create Sync Room</button>
           </div>
         </div>
 
-        <div id="mcqCardContainer" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-7 space-y-4 sm:space-y-5 shadow-sm">
+        <div id="mcqCardContainer" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-7 space-y-4 sm:space-y-5 shadow-sm">
           <div class="flex items-center justify-between gap-2 text-xs flex-wrap">
             <div class="flex items-center gap-2">
               <span id="mcqCounterBadge" class="font-bold text-indigo-600 dark:text-indigo-400">Question 1 of 6</span>
@@ -677,7 +677,7 @@
     </div>
   </div>
 
-  <!-- MODAL 3: LIVE CLOUD SYNC & BACKUP -->
+  <!-- MODAL 3: PRIVATE ROOM CLOUD SYNC & BACKUP -->
   <div id="syncModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
     <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full max-h-[90dvh] overflow-y-auto p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
@@ -686,32 +686,66 @@
       </div>
 
       <div class="p-4 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/70 space-y-3 text-xs">
-        <div class="flex items-center justify-between">
-          <p class="font-bold text-indigo-800 dark:text-indigo-200 text-sm">1. Live Firebase Auto-Sync</p>
-          <span id="cloudModalBadge" class="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-[11px] font-semibold">Not Connected</span>
+        <div class="flex items-center justify-between gap-2">
+          <p class="font-bold text-indigo-800 dark:text-indigo-200 text-sm">1. Private Firebase Auto-Sync</p>
+          <span id="cloudModalBadge" class="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-[11px] font-semibold">Disconnected</span>
         </div>
         <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
-          Enter the same <strong>Sync Room ID</strong> on your laptop, iPad, and phone. Everything uploaded on one device will automatically sync to the others.
+          Your folders, decks, and cards are stored in your private Firebase room. Connecting loads your room onto the screen; disconnecting clears the screen while keeping your data safely saved in Firebase.
         </p>
-        <div class="space-y-2">
+
+        <div class="space-y-2.5">
           <div>
             <label class="block font-semibold mb-1">Firebase Database URL</label>
             <input id="firebaseUrlInput" type="url" value="https://review-d33bf-default-rtdb.asia-southeast1.firebasedatabase.app" class="w-full p-2.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 font-mono text-xs" />
           </div>
+
           <div>
-            <label class="block font-semibold mb-1">Sync Room ID (Your Secret Key)</label>
-            <input id="firebaseRoomInput" type="text" placeholder="e.g., erick-ece-2027" class="w-full p-2.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 font-mono text-xs" />
+            <div class="flex items-center justify-between mb-1">
+              <label class="font-semibold">Sync Room ID</label>
+              <button id="generateRoomIdBtn" type="button" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline">Generate Unique ID</button>
+            </div>
+            <input id="firebaseRoomInput" type="text" placeholder="e.g., JUAN-ECE-2026" autocomplete="off" class="w-full p-2.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 font-mono text-xs uppercase" />
           </div>
         </div>
-        <div class="flex flex-wrap gap-2 pt-1">
-          <button id="connectCloudBtn" class="px-3.5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold">Save &amp; Sync Now</button>
-          <button id="pullCloudBtn" class="px-3.5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">Pull Latest from Cloud</button>
-          <button id="disconnectCloudBtn" class="px-3.5 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 font-semibold">Disconnect</button>
+
+        <!-- Inline Status / Duplicate Block Alert -->
+        <div id="syncFeedbackBox" class="hidden p-2.5 rounded-lg border text-xs font-semibold leading-relaxed"></div>
+
+        <!-- Disconnected Actions: Create New Room vs Open Existing Room -->
+        <div id="disconnectedSyncActions" class="flex flex-wrap gap-2 pt-1">
+          <button id="createRoomBtn" type="button" class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold transition">Create New Room</button>
+          <button id="openRoomBtn" type="button" class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-semibold transition">Open Existing Room</button>
+        </div>
+
+        <!-- Connected Actions -->
+        <div id="connectedSyncActions" class="hidden space-y-3 pt-1">
+          <div class="flex flex-wrap gap-2">
+            <button id="syncNowBtn" type="button" class="px-3.5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition">Sync &amp; Save Now</button>
+            <button id="pullCloudBtn" type="button" class="px-3.5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition">Pull Latest</button>
+            <button id="disconnectCloudBtn" type="button" class="px-3.5 py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold transition">Disconnect Cloud</button>
+          </div>
+
+          <!-- Copy Current Cloud Room to a New Room -->
+          <div class="pt-3 border-t border-indigo-200/80 dark:border-indigo-800/70 space-y-2">
+            <div class="flex items-center justify-between">
+              <label for="copyToNewRoomInput" class="font-bold text-indigo-800 dark:text-indigo-200">Copy This Cloud to a New Room</label>
+              <button id="generateCopyRoomIdBtn" type="button" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline">Generate Unique ID</button>
+            </div>
+            <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+              Duplicates all folders, decks, and cards from your active room into a brand-new private Room ID.
+            </p>
+            <input id="copyToNewRoomInput" type="text" placeholder="e.g., MY-ROOM-COPY" autocomplete="off" class="w-full p-2.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 font-mono text-xs uppercase" />
+            <div class="flex flex-wrap gap-2">
+              <button id="copyRoomStayBtn" type="button" class="flex-1 sm:flex-none px-3.5 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-semibold transition">Copy &amp; Stay Here</button>
+              <button id="copyRoomSwitchBtn" type="button" class="flex-1 sm:flex-none px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 disabled:opacity-50 text-white font-semibold transition">Copy &amp; Switch to New Room</button>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
-        <p class="font-semibold">2. Offline JSON File Backup</p>
+        <p class="font-semibold">2. JSON File Backup (Requires Connected Room)</p>
         <div class="flex flex-wrap gap-2 pt-1">
           <button id="downloadBackupBtn" class="px-3.5 py-2 rounded-lg bg-slate-800 dark:bg-slate-700 text-white font-semibold">Download .json Backup</button>
           <label class="cursor-pointer px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-600 font-semibold">
@@ -779,29 +813,9 @@
     const GEMINI_API_KEY = ['AQ.Ab8RN6Kg1HlH1I-_', 'cRiGjsNwuLDVbFKveVn5GpEM9zroMTH6og'].join('');
     const GEMINI_MODEL = 'gemini-3.5-flash-lite';
 
-    const STORAGE_KEY = 'flashforge_board_studio_v10';
+    const STORAGE_KEY = 'flashforge_board_studio_v11';
     const CLOUD_CFG_KEY = 'flashforge_cloud_cfg_v1';
     const DEFAULT_FIREBASE_URL = 'https://review-d33bf-default-rtdb.asia-southeast1.firebasedatabase.app';
-
-    const DEFAULT_DECKS = [
-      {
-        id: 'deck-ece-core',
-        folderId: '',
-        title: 'Sample — ECE Electronics & Comms',
-        color: '#4f46e5',
-        cards: [
-          {
-            id: 'ece-1',
-            question: 'What is the thermal voltage Vₜ of a silicon diode at room temperature (300 K)?',
-            answer: '25.85 mV',
-            choices: ['25.85 mV', '26.0 V', '0.70 V', '13.8 mV'],
-            formula: 'Vₜ = kT / q = (1.38 × 10⁻²³ · 300) / (1.6 × 10⁻¹⁹) = 25.85 mV',
-            tag: 'Electronics',
-            mastery: 0
-          }
-        ]
-      }
-    ];
 
     let cloudConfig = { url: DEFAULT_FIREBASE_URL, room: '' };
     let draggedDeckId = null;
@@ -967,6 +981,17 @@
       return copy;
     }
 
+    function isCloudConnected() {
+      return !!(cloudConfig.url && cloudConfig.room);
+    }
+
+    function requireCloudConnected(actionLabel = 'continue') {
+      if (isCloudConnected()) return true;
+      showToast(`Connect to a Cloud Sync Room first to ${actionLabel}.`, true);
+      openSyncModal();
+      return false;
+    }
+
     function getUnansweredQuizIndices() {
       const blanks = [];
       state.mcqItems.forEach((it, idx) => {
@@ -1090,6 +1115,7 @@
 
     function applyTemporaryWholeSet(newCardsArray, summaryMsg) {
       const deck = getActiveDeck();
+      if (!deck) return;
       const cleanedCards = newCardsArray.map((c, idx) => {
         const q = cleanMathText(c.question || '');
         const a = cleanMathText(c.answer || '');
@@ -1145,6 +1171,7 @@
     }
 
     async function sendAiChatCommand(userPrompt) {
+      if (!requireCloudConnected('use the AI Assistant')) return;
       const trimmed = userPrompt.trim();
       if (!trimmed) return;
 
@@ -1251,13 +1278,107 @@
       }
     }
 
+    // =========================================================================
+    // PRIVATE FIREBASE CLOUD SYNC (CONNECT / DISCONNECT / COPY TO NEW ROOM)
+    // =========================================================================
+    function normalizeRoomId(raw) {
+      return String(raw || '')
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9_-]+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
+
+    function preserveExactRoomKey(raw) {
+      return String(raw || '').trim().replace(/[^a-zA-Z0-9_-]/g, '');
+    }
+
+    function setSyncFeedback(message, type = 'info') {
+      const box = document.getElementById('syncFeedbackBox');
+      if (!box) return;
+      if (!message) {
+        box.classList.add('hidden');
+        box.textContent = '';
+        return;
+      }
+      box.classList.remove('hidden');
+      if (type === 'error') {
+        box.className = 'p-2.5 rounded-lg border text-xs font-semibold leading-relaxed bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300';
+      } else if (type === 'success') {
+        box.className = 'p-2.5 rounded-lg border text-xs font-semibold leading-relaxed bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300';
+      } else {
+        box.className = 'p-2.5 rounded-lg border text-xs font-semibold leading-relaxed bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300';
+      }
+      box.textContent = message;
+    }
+
+    async function fetchRoomSnapshot(baseUrl, roomKey) {
+      const res = await fetch(`${baseUrl}/flashforge_rooms/${encodeURIComponent(roomKey)}.json`);
+      if (!res.ok) {
+        throw new Error(`Firebase error (HTTP ${res.status}). Check your Database URL and Rules.`);
+      }
+      return await res.json();
+    }
+
+    async function findAvailableGeneratedRoomId(baseUrl) {
+      for (let attempt = 0; attempt < 6; attempt++) {
+        const code = 'PK-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        if (!baseUrl) return code;
+        try {
+          const existing = await fetchRoomSnapshot(baseUrl, code);
+          if (existing === null) return code;
+        } catch (e) {
+          return code;
+        }
+      }
+      return 'PK-' + Date.now().toString(36).toUpperCase();
+    }
+
+    function applyRemoteRoomCleanly(remoteData) {
+      state.folders = Array.isArray(remoteData?.folders) ? remoteData.folders : [];
+      state.decks = Array.isArray(remoteData?.decks) ? sanitizeDeckList(remoteData.decks) : [];
+      if (['manual', 'az', 'za'].includes(remoteData?.deckSortMode)) {
+        state.deckSortMode = remoteData.deckSortMode;
+      }
+      applyDeckSortOrder(state.deckSortMode);
+      if (!state.decks.some(d => d.id === state.activeDeckId)) {
+        state.activeDeckId = state.decks[0]?.id || '';
+      }
+    }
+
+    function clearWorkspaceWhenDisconnected() {
+      stopQuizTimer();
+      state.folders = [];
+      state.decks = [];
+      state.activeDeckId = '';
+      state.fcIndex = 0;
+      state.fcFlipped = false;
+      state.tempAiSetActive = false;
+      state.quizActive = false;
+      state.quizReviewingBlanks = false;
+      state.mcqSubMode = 'practice';
+      state.mcqShuffled = false;
+      state.mcqIndex = 0;
+      state.mcqItems = [];
+      state.mcqChoicesMap = {};
+      state.mcqAnswers = {};
+      state.mcqFlags = {};
+      aiChatHistory = [];
+      document.getElementById('quizReportScreen').classList.add('hidden');
+      document.getElementById('aiAssistantPanel').classList.add('hidden');
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (e) {}
+    }
+
     function loadCloudConfig() {
       try {
         const raw = localStorage.getItem(CLOUD_CFG_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
           cloudConfig.url = (parsed.url || DEFAULT_FIREBASE_URL).trim().replace(/\/+$/, '');
-          cloudConfig.room = (parsed.room || '').trim().replace(/[^a-zA-Z0-9_-]/g, '');
+          cloudConfig.room = preserveExactRoomKey(parsed.room || '');
         }
       } catch (e) {}
       updateCloudStatusUI();
@@ -1270,19 +1391,26 @@
 
     function getCloudEndpoint() {
       if (!cloudConfig.url || !cloudConfig.room) return '';
-      return `${cloudConfig.url}/flashforge_rooms/${cloudConfig.room}.json`;
+      return `${cloudConfig.url}/flashforge_rooms/${encodeURIComponent(cloudConfig.room)}.json`;
     }
 
     function updateCloudStatusUI(syncingState = '') {
-      const connected = !!(cloudConfig.url && cloudConfig.room);
+      const connected = isCloudConnected();
       const dot = document.getElementById('cloudStatusDot');
       const lbl = document.getElementById('cloudStatusLabel');
       const badge = document.getElementById('cloudModalBadge');
+      const discWrap = document.getElementById('disconnectedSyncActions');
+      const connWrap = document.getElementById('connectedSyncActions');
+      const roomInput = document.getElementById('firebaseRoomInput');
+
+      if (discWrap) discWrap.classList.toggle('hidden', connected);
+      if (connWrap) connWrap.classList.toggle('hidden', !connected);
+      if (roomInput) roomInput.readOnly = connected;
 
       if (!connected) {
         dot.className = 'w-2 h-2 rounded-full bg-slate-400';
-        lbl.textContent = 'Sync';
-        badge.textContent = 'Not Connected';
+        lbl.textContent = 'Connect Cloud';
+        badge.textContent = 'Disconnected';
         badge.className = 'px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-[11px] font-semibold';
         return;
       }
@@ -1297,7 +1425,7 @@
         badge.className = 'px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[11px] font-semibold';
       } else {
         dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
-        lbl.textContent = 'Cloud On';
+        lbl.textContent = cloudConfig.room;
         badge.textContent = 'Connected: ' + cloudConfig.room;
         badge.className = 'px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[11px] font-semibold';
       }
@@ -1305,7 +1433,7 @@
 
     async function pushToCloud(silent = true) {
       const endpoint = getCloudEndpoint();
-      if (!endpoint) return;
+      if (!endpoint) return false;
       updateCloudStatusUI('syncing');
       try {
         const res = await fetch(endpoint, {
@@ -1320,10 +1448,12 @@
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         updateCloudStatusUI('ok');
-        if (!silent) showToast('Synced to cloud! Open on your phone or iPad to see updates.');
+        if (!silent) showToast(`Synced & saved to "${cloudConfig.room}"!`);
+        return true;
       } catch (err) {
         updateCloudStatusUI('error');
-        if (!silent) showToast('Cloud push failed. Check Firebase URL & Rules.', true);
+        if (!silent) showToast('Cloud sync failed. Check Firebase URL & Rules.', true);
+        return false;
       }
     }
 
@@ -1335,33 +1465,18 @@
         const res = await fetch(endpoint);
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
-        updateCloudStatusUI('ok');
-        if (data && Array.isArray(data.decks) && data.decks.length > 0) {
-          state.folders = Array.isArray(data.folders) ? data.folders : [];
-          state.decks = sanitizeDeckList(data.decks);
-          state.deckSortMode = ['manual', 'az', 'za'].includes(data.deckSortMode) ? data.deckSortMode : 'manual';
-          applyDeckSortOrder(state.deckSortMode);
-          if (!state.decks.some(d => d.id === state.activeDeckId)) {
-            state.activeDeckId = state.decks[0].id;
-          }
-          localStorage.setItem(STORAGE_KEY, JSON.stringify({
-            folders: state.folders,
-            decks: state.decks,
-            deckSortMode: state.deckSortMode,
-            activeDeckId: state.activeDeckId,
-            todayCount: state.todayCount,
-            streak: state.streak,
-            darkMode: state.darkMode
-          }));
-          resetSessionPointers();
-          renderAll();
-          if (!silent) showToast('Loaded latest folders & question sets from cloud!');
-          return true;
-        } else {
-          await pushToCloud(true);
-          if (!silent) showToast('Connected! Uploaded your current question sets to cloud.');
-          return true;
+        if (data === null) {
+          updateCloudStatusUI('error');
+          if (!silent) showToast(`Room "${cloudConfig.room}" no longer exists.`, true);
+          return false;
         }
+        updateCloudStatusUI('ok');
+        applyRemoteRoomCleanly(data);
+        persistLocalCacheWhileConnected();
+        resetSessionPointers();
+        renderAll();
+        if (!silent) showToast(`Loaded latest sets from "${cloudConfig.room}"!`);
+        return true;
       } catch (err) {
         updateCloudStatusUI('error');
         if (!silent) showToast('Could not connect to Firebase URL. Verify URL & rules.', true);
@@ -1369,36 +1484,95 @@
       }
     }
 
-    function loadState() {
+    async function copyCloudToNewRoom(switchAfterCopy = false) {
+      if (!isCloudConnected()) return;
+      const url = (cloudConfig.url || DEFAULT_FIREBASE_URL).trim().replace(/\/+$/, '');
+      const rawTarget = document.getElementById('copyToNewRoomInput').value;
+      const targetRoom = normalizeRoomId(rawTarget);
+      const exactTargetKey = preserveExactRoomKey(rawTarget);
+
+      if (!targetRoom) {
+        setSyncFeedback('Enter a new Room ID to copy this cloud into.', 'error');
+        return;
+      }
+      if (targetRoom === cloudConfig.room.toUpperCase()) {
+        setSyncFeedback(`"${targetRoom}" is already your active room. Enter a different Room ID.`, 'error');
+        return;
+      }
+
+      document.getElementById('copyToNewRoomInput').value = targetRoom;
+      const stayBtn = document.getElementById('copyRoomStayBtn');
+      const switchBtn = document.getElementById('copyRoomSwitchBtn');
+      stayBtn.disabled = true;
+      switchBtn.disabled = true;
+      setSyncFeedback(`Checking availability of "${targetRoom}"...`, 'info');
+
       try {
-        const raw = localStorage.getItem(STORAGE_KEY)
-          || localStorage.getItem('flashforge_board_studio_v9')
-          || localStorage.getItem('flashforge_board_studio_v8')
-          || localStorage.getItem('flashforge_board_studio_v7')
-          || localStorage.getItem('flashforge_board_studio_v6')
-          || localStorage.getItem('flashforge_board_studio_v5');
-        if (raw) {
-          const saved = JSON.parse(raw);
-          if (Array.isArray(saved.decks) && saved.decks.length > 0) {
-            state.folders = Array.isArray(saved.folders) ? saved.folders : [];
-            state.decks = sanitizeDeckList(saved.decks);
-            state.deckSortMode = ['manual', 'az', 'za'].includes(saved.deckSortMode) ? saved.deckSortMode : 'manual';
-            applyDeckSortOrder(state.deckSortMode);
-            state.activeDeckId = saved.activeDeckId || saved.decks[0].id;
-            state.todayCount = saved.todayCount || 0;
-            state.streak = saved.streak || 1;
-            state.darkMode = !!saved.darkMode;
-            return;
-          }
+        const existingUpper = await fetchRoomSnapshot(url, targetRoom);
+        let existingLegacy = null;
+        if (existingUpper === null && exactTargetKey && exactTargetKey !== targetRoom) {
+          existingLegacy = await fetchRoomSnapshot(url, exactTargetKey);
         }
-      } catch (e) {}
-      state.folders = [];
-      state.decks = JSON.parse(JSON.stringify(DEFAULT_DECKS));
-      state.deckSortMode = 'manual';
-      state.activeDeckId = state.decks[0].id;
+
+        if (existingUpper !== null || existingLegacy !== null) {
+          setSyncFeedback(
+            `Room "${targetRoom}" already exists! Choose a unique Room ID so existing data is not overwritten.`,
+            'error'
+          );
+          showToast(`"${targetRoom}" already exists!`, true);
+          return;
+        }
+
+        const clonedFolders = JSON.parse(JSON.stringify(state.folders));
+        const clonedDecks = JSON.parse(JSON.stringify(state.decks));
+
+        const res = await fetch(`${url}/flashforge_rooms/${encodeURIComponent(targetRoom)}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            updatedAt: Date.now(),
+            deckSortMode: state.deckSortMode,
+            folders: clonedFolders,
+            decks: clonedDecks
+          })
+        });
+
+        if (!res.ok) {
+          throw new Error(`Firebase error (HTTP ${res.status}). Could not copy to "${targetRoom}".`);
+        }
+
+        document.getElementById('copyToNewRoomInput').value = '';
+
+        if (switchAfterCopy) {
+          cloudConfig.url = url;
+          cloudConfig.room = targetRoom;
+          saveCloudConfig();
+          document.getElementById('firebaseRoomInput').value = targetRoom;
+          persistLocalCacheWhileConnected();
+          renderAll();
+          setSyncFeedback(
+            `Copied ${clonedDecks.length} deck(s) and switched active connection to "${targetRoom}"!`,
+            'success'
+          );
+          showToast(`Copied & switched to "${targetRoom}"!`);
+        } else {
+          setSyncFeedback(
+            `Copied ${clonedDecks.length} deck(s) to "${targetRoom}"! You are still connected to "${cloudConfig.room}".`,
+            'success'
+          );
+          showToast(`Copied cloud to "${targetRoom}"!`);
+        }
+      } catch (err) {
+        setSyncFeedback(err.message, 'error');
+        showToast(err.message, true);
+      } finally {
+        stayBtn.disabled = false;
+        switchBtn.disabled = false;
+      }
     }
 
-    function saveState(syncCloud = true) {
+    function persistLocalCacheWhileConnected() {
+      if (!isCloudConnected()) return;
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           folders: state.folders,
@@ -1410,12 +1584,45 @@
           darkMode: state.darkMode
         }));
       } catch (e) {}
-      if (syncCloud && getCloudEndpoint()) {
+    }
+
+    function loadState() {
+      if (!isCloudConnected()) {
+        clearWorkspaceWhenDisconnected();
+        return;
+      }
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const saved = JSON.parse(raw);
+          state.folders = Array.isArray(saved.folders) ? saved.folders : [];
+          state.decks = Array.isArray(saved.decks) ? sanitizeDeckList(saved.decks) : [];
+          state.deckSortMode = ['manual', 'az', 'za'].includes(saved.deckSortMode) ? saved.deckSortMode : 'manual';
+          applyDeckSortOrder(state.deckSortMode);
+          state.activeDeckId = state.decks.some(d => d.id === saved.activeDeckId)
+            ? saved.activeDeckId
+            : (state.decks[0]?.id || '');
+          state.todayCount = saved.todayCount || 0;
+          state.streak = saved.streak || 1;
+          state.darkMode = !!saved.darkMode;
+          return;
+        }
+      } catch (e) {}
+      state.folders = [];
+      state.decks = [];
+      state.activeDeckId = '';
+    }
+
+    function saveState(syncCloud = true) {
+      if (!isCloudConnected()) return;
+      persistLocalCacheWhileConnected();
+      if (syncCloud) {
         pushToCloud(true);
       }
     }
 
     function getActiveDeck() {
+      if (!isCloudConnected() || !state.decks.length) return null;
       return state.decks.find(d => d.id === state.activeDeckId) || state.decks[0];
     }
 
@@ -1424,6 +1631,7 @@
     }
 
     function moveDeckToFolder(deckId, targetFolderId) {
+      if (!requireCloudConnected('move decks')) return;
       const deck = state.decks.find(d => d.id === deckId);
       if (!deck || deck.folderId === targetFolderId) return;
       deck.folderId = targetFolderId;
@@ -1442,6 +1650,7 @@
     }
 
     function openMoveFolderModal(deckId) {
+      if (!requireCloudConnected('organize sets')) return;
       const deck = state.decks.find(d => d.id === deckId);
       if (!deck) return;
       organizingDeckId = deck.id;
@@ -1496,7 +1705,7 @@
         </div>
         <div class="flex items-center gap-0.5 shrink-0">
           <button data-move-deck="${deck.id}" class="p-1.5 text-slate-400 hover:text-indigo-600 text-xs" title="Move or Reorder Set">&#128193;</button>
-          ${state.decks.length > 1 ? `<button data-del-deck="${deck.id}" class="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 p-1.5 text-slate-400 hover:text-rose-500 text-sm leading-none" title="Delete Question Set">&times;</button>` : ''}
+          <button data-del-deck="${deck.id}" class="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 p-1.5 text-slate-400 hover:text-rose-500 text-sm leading-none" title="Delete Question Set">&times;</button>
         </div>
       `;
 
@@ -1557,7 +1766,9 @@
           e.stopPropagation();
           if (confirm('Delete question set "' + deck.title + '"?')) {
             state.decks = state.decks.filter(d => d.id !== deck.id);
-            if (state.activeDeckId === deck.id) state.activeDeckId = state.decks[0].id;
+            if (state.activeDeckId === deck.id) {
+              state.activeDeckId = state.decks[0]?.id || '';
+            }
             resetSessionPointers();
             saveState();
             renderAll();
@@ -1606,6 +1817,23 @@
 
       const list = document.getElementById('deckList');
       list.innerHTML = '';
+
+      if (!isCloudConnected()) {
+        document.getElementById('globalMasteryText').textContent = 'Cloud Disconnected';
+        list.innerHTML = `
+          <div class="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/40 text-center space-y-2.5 my-2">
+            <p class="text-xs font-bold text-slate-700 dark:text-slate-200">No Cloud Room Connected</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+              Connect or create a Sync Room to load your folders, decks, and cards.
+            </p>
+            <button type="button" onclick="openSyncModal()" class="w-full py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition">
+              Connect Sync Room
+            </button>
+          </div>
+        `;
+        return;
+      }
+
       let totalCards = 0;
       let totalMastered = 0;
 
@@ -1613,6 +1841,15 @@
         totalCards += deck.cards.length;
         totalMastered += deck.cards.filter(c => (c.mastery || 0) >= 3).length;
       });
+
+      if (state.folders.length === 0 && state.decks.length === 0) {
+        list.innerHTML = `
+          <div class="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center space-y-1.5 my-2">
+            <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Room "${escapeHtml(cloudConfig.room)}" is empty</p>
+            <p class="text-[11px] text-slate-400">Click <strong>+ Folder</strong>, <strong>+ Deck</strong>, or <strong>Import JSON</strong> to add study sets.</p>
+          </div>
+        `;
+      }
 
       state.folders.forEach(folder => {
         const folderDecks = state.decks.filter(d => d.folderId === folder.id);
@@ -1692,25 +1929,27 @@
       });
 
       const unfiledDecks = state.decks.filter(d => !d.folderId || !state.folders.some(f => f.id === d.folderId));
-      const unfiledZone = document.createElement('div');
-      unfiledZone.className = 'rounded-xl p-1.5 space-y-1 transition min-h-[52px]';
-      attachFolderDropEvents(unfiledZone, '');
+      if (unfiledDecks.length > 0 || state.folders.length > 0) {
+        const unfiledZone = document.createElement('div');
+        unfiledZone.className = 'rounded-xl p-1.5 space-y-1 transition min-h-[52px]';
+        attachFolderDropEvents(unfiledZone, '');
 
-      if (state.folders.length > 0) {
-        const lbl = document.createElement('p');
-        lbl.className = 'text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 pt-1';
-        lbl.textContent = 'Outside Folders (Unfiled)';
-        unfiledZone.appendChild(lbl);
+        if (state.folders.length > 0) {
+          const lbl = document.createElement('p');
+          lbl.className = 'text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 pt-1';
+          lbl.textContent = 'Outside Folders (Unfiled)';
+          unfiledZone.appendChild(lbl);
+        }
+        if (unfiledDecks.length === 0 && state.folders.length > 0) {
+          const emptyHint = document.createElement('p');
+          emptyHint.className = 'text-[11px] text-slate-400 py-1.5 px-2 italic';
+          emptyHint.textContent = 'Drag a set here to place outside folders';
+          unfiledZone.appendChild(emptyHint);
+        } else {
+          unfiledDecks.forEach(d => unfiledZone.appendChild(createDeckRowEl(d)));
+        }
+        list.appendChild(unfiledZone);
       }
-      if (unfiledDecks.length === 0 && state.folders.length > 0) {
-        const emptyHint = document.createElement('p');
-        emptyHint.className = 'text-[11px] text-slate-400 py-1.5 px-2 italic';
-        emptyHint.textContent = 'Drag a set here to place outside folders';
-        unfiledZone.appendChild(emptyHint);
-      } else {
-        unfiledDecks.forEach(d => unfiledZone.appendChild(createDeckRowEl(d)));
-      }
-      list.appendChild(unfiledZone);
 
       document.getElementById('globalMasteryText').textContent = `${totalMastered} / ${totalCards} Mastered`;
       document.getElementById('streakCount').textContent = state.streak;
@@ -1722,6 +1961,7 @@
     }
 
     function promptCreateDeck(defaultFolderId = '') {
+      if (!requireCloudConnected('create a question set')) return;
       const name = prompt('Enter new question set name:');
       if (!name || !name.trim()) return;
       const colors = ['#4f46e5', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0284c7'];
@@ -1751,7 +1991,6 @@
       state.mcqSubMode = 'practice';
       state.mcqShuffled = false;
       document.getElementById('quizReportScreen').classList.add('hidden');
-      document.getElementById('mcqCardContainer').classList.remove('hidden');
       initPracticeMcqSession(false);
       if (startIdx > 0 && startIdx < state.mcqItems.length) {
         state.mcqIndex = startIdx;
@@ -1760,29 +1999,50 @@
 
     function renderHeader() {
       const deck = getActiveDeck();
-      document.getElementById('activeDeckTitle').textContent = deck.title;
-      document.getElementById('activeDeckDot').style.background = deck.color || '#4f46e5';
-      const mastered = deck.cards.filter(c => (c.mastery || 0) >= 3).length;
-      document.getElementById('activeDeckMeta').textContent = `${deck.cards.length} cards in set \u2022 ${mastered} mastered`;
-
-      const folder = state.folders.find(f => f.id === deck.folderId);
       const folderBadge = document.getElementById('activeFolderBadge');
-      if (folder) {
-        folderBadge.textContent = folder.name;
-        folderBadge.classList.remove('hidden');
-      } else {
-        folderBadge.classList.add('hidden');
-      }
+      const folderWrap = document.getElementById('activeFolderWrap');
+      const renameBtn = document.getElementById('renameDeckBtn');
 
-      const folderSelect = document.getElementById('activeDeckFolderSelect');
-      folderSelect.innerHTML = '<option value="">No Folder (Unfiled)</option>';
-      state.folders.forEach(f => {
-        const opt = document.createElement('option');
-        opt.value = f.id;
-        opt.textContent = f.name;
-        if (f.id === deck.folderId) opt.selected = true;
-        folderSelect.appendChild(opt);
-      });
+      if (!isCloudConnected()) {
+        document.getElementById('activeDeckTitle').textContent = 'No Cloud Room Connected';
+        document.getElementById('activeDeckDot').style.background = '#94a3b8';
+        document.getElementById('activeDeckMeta').textContent = 'Connect to a Sync Room to view or create folders, decks & cards';
+        folderBadge.classList.add('hidden');
+        folderWrap.classList.add('hidden');
+        renameBtn.classList.add('hidden');
+      } else if (!deck) {
+        document.getElementById('activeDeckTitle').textContent = 'No Question Sets Yet';
+        document.getElementById('activeDeckDot').style.background = '#6366f1';
+        document.getElementById('activeDeckMeta').textContent = 'Click + Deck or Import JSON to create your first question set';
+        folderBadge.classList.add('hidden');
+        folderWrap.classList.add('hidden');
+        renameBtn.classList.add('hidden');
+      } else {
+        document.getElementById('activeDeckTitle').textContent = deck.title;
+        document.getElementById('activeDeckDot').style.background = deck.color || '#4f46e5';
+        const mastered = deck.cards.filter(c => (c.mastery || 0) >= 3).length;
+        document.getElementById('activeDeckMeta').textContent = `${deck.cards.length} cards in set \u2022 ${mastered} mastered`;
+        renameBtn.classList.remove('hidden');
+        folderWrap.classList.remove('hidden');
+
+        const folder = state.folders.find(f => f.id === deck.folderId);
+        if (folder) {
+          folderBadge.textContent = folder.name;
+          folderBadge.classList.remove('hidden');
+        } else {
+          folderBadge.classList.add('hidden');
+        }
+
+        const folderSelect = document.getElementById('activeDeckFolderSelect');
+        folderSelect.innerHTML = '<option value="">No Folder (Unfiled)</option>';
+        state.folders.forEach(f => {
+          const opt = document.createElement('option');
+          opt.value = f.id;
+          opt.textContent = f.name;
+          if (f.id === deck.folderId) opt.selected = true;
+          folderSelect.appendChild(opt);
+        });
+      }
 
       document.querySelectorAll('.mode-btn').forEach(btn => {
         const active = btn.dataset.mode === state.mode;
@@ -1799,23 +2059,48 @@
 
     function renderFlashcards() {
       const deck = getActiveDeck();
-      const cards = deck.cards;
       const empty = document.getElementById('fcEmptyState');
+      const emptyTitle = document.getElementById('fcEmptyTitle');
+      const emptyDesc = document.getElementById('fcEmptyDesc');
+      const emptyActions = document.getElementById('fcEmptyActions');
+      const headerActions = document.getElementById('fcHeaderActions');
       const stage = document.getElementById('fcStage');
       const controls = document.getElementById('fcControls');
 
-      if (!cards.length) {
+      if (!isCloudConnected()) {
         empty.classList.remove('hidden');
         stage.classList.add('hidden');
         controls.classList.add('hidden');
-        document.getElementById('fcProgressText').textContent = '0 cards';
+        headerActions.classList.add('hidden');
+        document.getElementById('fcProgressText').textContent = 'Disconnected';
         document.getElementById('fcProgressBar').style.width = '0%';
+        emptyTitle.textContent = 'Cloud Sync Disconnected';
+        emptyDesc.textContent = 'Connect to your Firebase Sync Room to load your saved folders, decks, and cards.';
+        emptyActions.innerHTML = `<button onclick="openSyncModal()" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm">Connect / Create Sync Room</button>`;
         return;
       }
 
+      if (!deck || !deck.cards.length) {
+        empty.classList.remove('hidden');
+        stage.classList.add('hidden');
+        controls.classList.add('hidden');
+        headerActions.classList.add('hidden');
+        document.getElementById('fcProgressText').textContent = '0 cards';
+        document.getElementById('fcProgressBar').style.width = '0%';
+        emptyTitle.textContent = deck ? 'No cards in this set yet' : 'No question sets in this room yet';
+        emptyDesc.textContent = 'Import a .json file or add cards manually.';
+        emptyActions.innerHTML = `
+          <button onclick="openBulkModal()" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold">Import JSON Questions</button>
+          <button onclick="openCardModal(null)" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold">+ Add Card Manually</button>
+        `;
+        return;
+      }
+
+      const cards = deck.cards;
       empty.classList.add('hidden');
       stage.classList.remove('hidden');
       controls.classList.remove('hidden');
+      headerActions.classList.remove('hidden');
 
       if (state.fcIndex >= cards.length) state.fcIndex = 0;
       const card = cards[state.fcIndex];
@@ -1861,6 +2146,14 @@
 
     function initPracticeMcqSession(shuffleAll) {
       const deck = getActiveDeck();
+      if (!deck) {
+        state.mcqItems = [];
+        state.mcqIndex = 0;
+        state.mcqAnswers = {};
+        state.mcqFlags = {};
+        state.mcqChoicesMap = {};
+        return;
+      }
       let items = deck.cards.map((card, i) => ({
         key: `${deck.id}_${i}`,
         card,
@@ -1886,6 +2179,11 @@
     }
 
     function openQuizSetupModal(defaultScope = 'set', preselectFolderId = '') {
+      if (!requireCloudConnected('start a quiz')) return;
+      if (!state.decks.length) {
+        showToast('Create a question set or import JSON first.', true);
+        return;
+      }
       quizSetupMode = defaultScope;
 
       const deckSel = document.getElementById('quizTargetDeckSelect');
@@ -2203,11 +2501,31 @@
       const practiceTab = document.getElementById('mcqPracticeTab');
       const quizTab = document.getElementById('mcqQuizTab');
       const isPractice = state.mcqSubMode === 'practice';
+      const emptyBox = document.getElementById('mcqEmptyBox');
+      const emptyText = document.getElementById('mcqEmptyText');
+      const emptyActions = document.getElementById('mcqEmptyActions');
+      const cardContainer = document.getElementById('mcqCardContainer');
 
       practiceTab.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition ' + (isPractice ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500');
       quizTab.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition ' + (!isPractice ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500');
 
-      document.getElementById('practiceShuffleControls').classList.toggle('hidden', !isPractice || !deck.cards.length);
+      if (!isCloudConnected()) {
+        document.getElementById('practiceShuffleControls').classList.add('hidden');
+        document.getElementById('quizSetupControls').classList.add('hidden');
+        document.getElementById('quizLiveStatus').classList.add('hidden');
+        document.getElementById('quizNavigatorBox').classList.add('hidden');
+        document.getElementById('tempAiSetBanner').classList.add('hidden');
+        document.getElementById('quizBlankAlertBanner').classList.add('hidden');
+        document.getElementById('quizAllAnsweredBanner').classList.add('hidden');
+        document.getElementById('quizReportScreen').classList.add('hidden');
+        cardContainer.classList.add('hidden');
+        emptyBox.classList.remove('hidden');
+        emptyText.textContent = 'Cloud Sync is disconnected. Connect to your Firebase Sync Room to load your question sets.';
+        emptyActions.innerHTML = `<button onclick="openSyncModal()" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm">Connect / Create Sync Room</button>`;
+        return;
+      }
+
+      document.getElementById('practiceShuffleControls').classList.toggle('hidden', !isPractice || !deck || !deck.cards.length);
       document.getElementById('mcqOrderedDeckBtn').classList.toggle('hidden', !state.mcqShuffled && !state.tempAiSetActive);
       document.getElementById('mcqShuffledTag').classList.toggle('hidden', !isPractice || !state.mcqShuffled);
 
@@ -2220,11 +2538,13 @@
       document.getElementById('mcqFlagBtn').classList.toggle('hidden', isPractice || !state.quizActive);
       document.getElementById('mcqRandomJumpBtn').classList.toggle('hidden', !isPractice || state.mcqItems.length < 2);
 
-      const emptyBox = document.getElementById('mcqEmptyBox');
-      const cardContainer = document.getElementById('mcqCardContainer');
-
-      if (isPractice && !deck.cards.length && !state.tempAiSetActive) {
+      if (isPractice && (!deck || !deck.cards.length) && !state.tempAiSetActive) {
         emptyBox.classList.remove('hidden');
+        emptyText.textContent = 'No questions available here yet. Import a .json file or add cards manually.';
+        emptyActions.innerHTML = `
+          <button onclick="openBulkModal()" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold">Import JSON</button>
+          <button onclick="openCardModal(null)" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold">+ Add Card Manually</button>
+        `;
         cardContainer.classList.add('hidden');
         document.getElementById('quizBlankAlertBanner').classList.add('hidden');
         document.getElementById('quizAllAnsweredBanner').classList.add('hidden');
@@ -2242,7 +2562,7 @@
       if (!document.getElementById('quizReportScreen').classList.contains('hidden')) return;
       cardContainer.classList.remove('hidden');
 
-      if (isPractice && !state.tempAiSetActive && state.mcqItems.length !== deck.cards.length) {
+      if (isPractice && !state.tempAiSetActive && deck && state.mcqItems.length !== deck.cards.length) {
         initPracticeMcqSession(state.mcqShuffled);
       }
       if (state.mcqIndex >= state.mcqItems.length) state.mcqIndex = 0;
@@ -2390,11 +2710,26 @@
     }
 
     function renderCardsManager() {
-      const deck = getActiveDeck();
-      const query = document.getElementById('cardSearchInput').value.trim().toLowerCase();
       const list = document.getElementById('cardsManagerList');
       list.innerHTML = '';
 
+      if (!isCloudConnected()) {
+        list.innerHTML = `
+          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 text-center space-y-3">
+            <p class="text-sm text-slate-500">Cloud Sync is disconnected. Connect to your Sync Room to view and manage cards.</p>
+            <button onclick="openSyncModal()" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm">Connect / Create Sync Room</button>
+          </div>
+        `;
+        return;
+      }
+
+      const deck = getActiveDeck();
+      if (!deck) {
+        list.innerHTML = '<p class="text-center text-sm text-slate-500 py-8">No question set selected. Create a deck or import JSON first.</p>';
+        return;
+      }
+
+      const query = document.getElementById('cardSearchInput').value.trim().toLowerCase();
       const filtered = deck.cards.filter(c =>
         !query ||
         c.question.toLowerCase().includes(query) ||
@@ -2581,6 +2916,7 @@
     }
 
     function executeBulkImport() {
+      if (!requireCloudConnected('import JSON questions')) return false;
       if (!validatedImportCards.length) return false;
       let targetId = document.getElementById('bulkDeckSelect').value;
       let startIndex = 0;
@@ -2624,6 +2960,7 @@
     }
 
     function handleDroppedOrSelectedJsonFile(file, autoSubmit = true) {
+      if (!requireCloudConnected('import JSON files')) return;
       if (!file) return;
       if (!file.name.toLowerCase().endsWith('.json') && file.type !== 'application/json') {
         showToast('Please select a valid .json file.', true);
@@ -2655,6 +2992,7 @@
     }
 
     function openBulkModal() {
+      if (!requireCloudConnected('import JSON questions')) return;
       const select = document.getElementById('bulkDeckSelect');
       select.innerHTML = '';
 
@@ -2689,6 +3027,7 @@
     }
 
     function openCardModal(existingCard) {
+      if (!requireCloudConnected('add or edit cards')) return;
       document.getElementById('cardModalTitle').textContent = existingCard ? 'Edit Question Card' : 'Add Question Card';
       document.getElementById('editCardId').value = existingCard ? existingCard.id : '';
       document.getElementById('cardQuestionInput').value = existingCard ? existingCard.question : '';
@@ -2705,8 +3044,12 @@
     }
 
     function openSyncModal() {
-      document.getElementById('firebaseUrlInput').value = cloudConfig.url || DEFAULT_FIREBASE_URL;
+      const url = cloudConfig.url || DEFAULT_FIREBASE_URL;
+      document.getElementById('firebaseUrlInput').value = url;
       document.getElementById('firebaseRoomInput').value = cloudConfig.room;
+      const copyInput = document.getElementById('copyToNewRoomInput');
+      if (copyInput) copyInput.value = '';
+      setSyncFeedback('');
       updateCloudStatusUI();
       openModal('syncModal');
     }
@@ -2743,7 +3086,7 @@
       initPracticeMcqSession(false);
       renderAll();
 
-      if (getCloudEndpoint()) {
+      if (isCloudConnected()) {
         await pullFromCloud(true);
       }
 
@@ -2828,11 +3171,12 @@
 
       document.getElementById('themeToggleBtn').onclick = () => {
         state.darkMode = !state.darkMode;
-        saveState(false);
+        persistLocalCacheWhileConnected();
         applyTheme();
       };
 
       document.getElementById('newFolderBtn').onclick = () => {
+        if (!requireCloudConnected('create a folder')) return;
         const name = prompt('Enter folder name (e.g., Math, Electronics, GEAS, EST):');
         if (!name || !name.trim()) return;
         state.folders.push({ id: 'folder-' + Date.now(), name: name.trim(), collapsed: false });
@@ -2842,16 +3186,19 @@
       };
 
       document.getElementById('newDeckBtn').onclick = () => {
+        if (!requireCloudConnected('create a deck')) return;
         const activeDeck = getActiveDeck();
         promptCreateDeck(activeDeck ? activeDeck.folderId : '');
       };
 
       document.getElementById('activeDeckFolderSelect').onchange = (e) => {
-        moveDeckToFolder(getActiveDeck().id, e.target.value);
+        const deck = getActiveDeck();
+        if (deck) moveDeckToFolder(deck.id, e.target.value);
       };
 
       document.getElementById('renameDeckBtn').onclick = () => {
         const deck = getActiveDeck();
+        if (!deck) return;
         const name = prompt('Rename question set:', deck.title);
         if (name && name.trim()) {
           deck.title = name.trim();
@@ -2931,7 +3278,7 @@
 
       function rateCurrentFlashcard(rating) {
         const deck = getActiveDeck();
-        if (!deck.cards.length) return;
+        if (!deck || !deck.cards.length) return;
         const card = deck.cards[state.fcIndex];
         card.mastery = rating === 1 ? 0 : Math.min(4, (card.mastery || 0) + (rating >= 3 ? 1 : 0));
         state.todayCount++;
@@ -2949,6 +3296,7 @@
 
       document.getElementById('fcShuffleBtn').onclick = () => {
         const deck = getActiveDeck();
+        if (!deck) return;
         deck.cards = shuffleArray(deck.cards);
         state.fcIndex = 0;
         state.fcFlipped = false;
@@ -2958,6 +3306,7 @@
 
       document.getElementById('fcResetBtn').onclick = () => {
         const deck = getActiveDeck();
+        if (!deck) return;
         deck.cards.forEach(c => c.mastery = 0);
         saveState();
         renderAll();
@@ -2995,6 +3344,7 @@
 
       // AI Chat Panel Events
       document.getElementById('toggleAiChatBtn').onclick = () => {
+        if (!requireCloudConnected('use the AI Assistant')) return;
         const panel = document.getElementById('aiAssistantPanel');
         panel.classList.toggle('hidden');
         if (!panel.classList.contains('hidden')) {
@@ -3032,7 +3382,6 @@
         state.quizReviewingBlanks = false;
         state.mcqSubMode = 'practice';
         document.getElementById('quizReportScreen').classList.add('hidden');
-        document.getElementById('mcqCardContainer').classList.remove('hidden');
         if (!state.tempAiSetActive) {
           initPracticeMcqSession(false);
         }
@@ -3040,6 +3389,7 @@
       };
 
       document.getElementById('mcqQuizTab').onclick = () => {
+        if (!requireCloudConnected('start a scored quiz')) return;
         state.mcqSubMode = 'quiz';
         if (!state.quizActive && document.getElementById('quizReportScreen').classList.contains('hidden')) {
           openQuizSetupModal('set');
@@ -3142,6 +3492,7 @@
 
       document.getElementById('addCardBtn').onclick = () => openCardModal(null);
       document.getElementById('saveCardBtn').onclick = () => {
+        if (!requireCloudConnected('save cards')) return;
         const question = cleanMathText(document.getElementById('cardQuestionInput').value.trim());
         const answer = cleanMathText(document.getElementById('cardAnswerInput').value.trim());
         if (!question || !answer) { alert('Question and Correct Answer are required.'); return; }
@@ -3152,7 +3503,20 @@
         const tag = document.getElementById('cardTagInput').value.trim() || 'General';
         const choices = [answer, w1, w2, w3].filter(Boolean);
 
-        const deck = getActiveDeck();
+        let deck = getActiveDeck();
+        if (!deck) {
+          const newDeckId = 'deck-' + Date.now();
+          deck = {
+            id: newDeckId,
+            folderId: '',
+            title: 'Question Set 1',
+            color: '#4f46e5',
+            cards: []
+          };
+          state.decks.push(deck);
+          state.activeDeckId = newDeckId;
+        }
+
         const editId = document.getElementById('editCardId').value;
         if (editId) {
           const existing = deck.cards.find(c => c.id === editId);
@@ -3176,66 +3540,218 @@
       document.getElementById('openSyncBtn').onclick = openSyncModal;
       document.getElementById('openShortcutsBtn').onclick = () => openModal('shortcutsModal');
 
-      document.getElementById('connectCloudBtn').onclick = async () => {
-        const url = document.getElementById('firebaseUrlInput').value.trim().replace(/\/+$/, '');
-        const room = document.getElementById('firebaseRoomInput').value.trim().replace(/[^a-zA-Z0-9_-]/g, '');
-        if (!url || !room) {
-          showToast('Please enter both the Firebase URL and a Sync Room ID.', true);
+      // Generate a unique Room ID (verifies it isn't already taken in Firebase)
+      document.getElementById('generateRoomIdBtn').onclick = async () => {
+        if (isCloudConnected()) {
+          setSyncFeedback('Disconnect from your current room first before generating a new ID.', 'info');
           return;
         }
-        cloudConfig.url = url;
-        cloudConfig.room = room;
-        saveCloudConfig();
-        await pushToCloud(false);
+        const url = document.getElementById('firebaseUrlInput').value.trim().replace(/\/+$/, '');
+        const code = await findAvailableGeneratedRoomId(url);
+        document.getElementById('firebaseRoomInput').value = code;
+        setSyncFeedback(`Generated available ID "${code}". Click "Create New Room" to claim it.`, 'info');
+      };
+
+      // Generate a unique Room ID for copying the current cloud room
+      document.getElementById('generateCopyRoomIdBtn').onclick = async () => {
+        if (!isCloudConnected()) return;
+        const url = (cloudConfig.url || DEFAULT_FIREBASE_URL).trim().replace(/\/+$/, '');
+        const code = await findAvailableGeneratedRoomId(url);
+        document.getElementById('copyToNewRoomInput').value = code;
+        setSyncFeedback(`Generated available copy ID "${code}". Click "Copy & Stay Here" or "Copy & Switch to New Room".`, 'info');
+      };
+
+      document.getElementById('copyRoomStayBtn').onclick = () => copyCloudToNewRoom(false);
+      document.getElementById('copyRoomSwitchBtn').onclick = () => copyCloudToNewRoom(true);
+
+      // CREATE NEW ROOM — Blocks duplicates, creates clean cloud room & connects
+      document.getElementById('createRoomBtn').onclick = async () => {
+        const url = document.getElementById('firebaseUrlInput').value.trim().replace(/\/+$/, '');
+        const rawInput = document.getElementById('firebaseRoomInput').value;
+        const room = normalizeRoomId(rawInput);
+        const exactCaseKey = preserveExactRoomKey(rawInput);
+
+        if (!url || !room) {
+          setSyncFeedback('Please enter both the Firebase Database URL and a Sync Room ID.', 'error');
+          return;
+        }
+
+        document.getElementById('firebaseRoomInput').value = room;
+        const btn = document.getElementById('createRoomBtn');
+        btn.disabled = true;
+        setSyncFeedback('Checking if Room ID is available...', 'info');
+
+        try {
+          const existingUpper = await fetchRoomSnapshot(url, room);
+          let existingLegacy = null;
+          if (existingUpper === null && exactCaseKey && exactCaseKey !== room) {
+            existingLegacy = await fetchRoomSnapshot(url, exactCaseKey);
+          }
+
+          if (existingUpper !== null || existingLegacy !== null) {
+            setSyncFeedback(
+              `Room "${room}" already exists! Duplicate Room IDs are not allowed — choose a different ID or click "Open Existing Room".`,
+              'error'
+            );
+            showToast(`"${room}" is already taken!`, true);
+            return;
+          }
+
+          state.folders = [];
+          state.decks = [];
+          state.activeDeckId = '';
+          cloudConfig.url = url;
+          cloudConfig.room = room;
+          saveCloudConfig();
+
+          const ok = await pushToCloud(true);
+          if (!ok) {
+            cloudConfig.room = '';
+            saveCloudConfig();
+            setSyncFeedback('Could not create room in Firebase. Check your Database URL and Rules.', 'error');
+            return;
+          }
+
+          persistLocalCacheWhileConnected();
+          resetSessionPointers();
+          renderAll();
+          setSyncFeedback(`Created and connected to private room "${room}"!`, 'success');
+          showToast(`Private room "${room}" created!`);
+        } catch (err) {
+          setSyncFeedback(err.message, 'error');
+          showToast(err.message, true);
+        } finally {
+          btn.disabled = false;
+        }
+      };
+
+      // OPEN EXISTING ROOM — Loads folders, decks & cards from Firebase onto the screen
+      document.getElementById('openRoomBtn').onclick = async () => {
+        const url = document.getElementById('firebaseUrlInput').value.trim().replace(/\/+$/, '');
+        const rawInput = document.getElementById('firebaseRoomInput').value;
+        const room = normalizeRoomId(rawInput);
+        const exactCaseKey = preserveExactRoomKey(rawInput);
+
+        if (!url || !room) {
+          setSyncFeedback('Please enter both the Firebase Database URL and your Sync Room ID.', 'error');
+          return;
+        }
+
+        const btn = document.getElementById('openRoomBtn');
+        btn.disabled = true;
+        setSyncFeedback(`Connecting to room "${room}"...`, 'info');
+
+        try {
+          let targetKey = room;
+          let remoteData = await fetchRoomSnapshot(url, room);
+
+          // Support legacy mixed-case rooms if uppercase key is null
+          if (remoteData === null && exactCaseKey && exactCaseKey !== room) {
+            const legacyData = await fetchRoomSnapshot(url, exactCaseKey);
+            if (legacyData !== null) {
+              targetKey = exactCaseKey;
+              remoteData = legacyData;
+            }
+          }
+
+          if (remoteData === null) {
+            document.getElementById('firebaseRoomInput').value = room;
+            setSyncFeedback(
+              `Room "${room}" does not exist. Check your spelling or click "Create New Room" to create it.`,
+              'error'
+            );
+            showToast(`Room "${room}" not found.`, true);
+            return;
+          }
+
+          document.getElementById('firebaseRoomInput').value = targetKey;
+          cloudConfig.url = url;
+          cloudConfig.room = targetKey;
+          saveCloudConfig();
+
+          applyRemoteRoomCleanly(remoteData);
+          persistLocalCacheWhileConnected();
+          resetSessionPointers();
+          renderAll();
+
+          setSyncFeedback(`Connected to "${targetKey}" (${state.decks.length} deck(s) loaded)!`, 'success');
+          showToast(`Connected to "${targetKey}"!`);
+        } catch (err) {
+          setSyncFeedback(err.message, 'error');
+          showToast(err.message, true);
+        } finally {
+          btn.disabled = false;
+        }
+      };
+
+      document.getElementById('syncNowBtn').onclick = async () => {
+        if (!isCloudConnected()) return;
+        const ok = await pushToCloud(false);
+        if (ok) {
+          renderAll();
+          setSyncFeedback(`Synced & saved latest changes to "${cloudConfig.room}".`, 'success');
+        }
       };
 
       document.getElementById('pullCloudBtn').onclick = async () => {
-        const url = document.getElementById('firebaseUrlInput').value.trim().replace(/\/+$/, '');
-        const room = document.getElementById('firebaseRoomInput').value.trim().replace(/[^a-zA-Z0-9_-]/g, '');
-        if (!url || !room) {
-          showToast('Please enter both the Firebase URL and a Sync Room ID.', true);
-          return;
+        if (!isCloudConnected()) return;
+        const ok = await pullFromCloud(false);
+        if (ok) {
+          setSyncFeedback(`Pulled latest updates from "${cloudConfig.room}".`, 'success');
         }
-        cloudConfig.url = url;
-        cloudConfig.room = room;
-        saveCloudConfig();
-        await pullFromCloud(false);
       };
 
-      document.getElementById('disconnectCloudBtn').onclick = () => {
+      // DISCONNECT CLOUD — Saves to Firebase first, then clears all folders, decks & cards from screen
+      document.getElementById('disconnectCloudBtn').onclick = async () => {
+        const prevRoom = cloudConfig.room;
+        if (isCloudConnected()) {
+          await pushToCloud(true);
+        }
         cloudConfig = { url: DEFAULT_FIREBASE_URL, room: '' };
         saveCloudConfig();
+        clearWorkspaceWhenDisconnected();
         document.getElementById('firebaseRoomInput').value = '';
-        showToast('Disconnected from cloud sync.');
+        document.getElementById('copyToNewRoomInput').value = '';
+        renderAll();
+        setSyncFeedback(
+          `Disconnected from "${prevRoom}". Your data remains saved in Firebase — reconnect anytime to bring your decks & cards back.`,
+          'info'
+        );
+        showToast('Disconnected — screen cleared (Firebase data saved).');
       };
 
       document.getElementById('downloadBackupBtn').onclick = () => {
+        if (!requireCloudConnected('download a backup')) return;
         const blob = new Blob([JSON.stringify({ folders: state.folders, decks: state.decks }, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'flashforge_board_backup.json';
+        a.download = `plashkard_${cloudConfig.room || 'backup'}.json`;
         a.click();
         URL.revokeObjectURL(url);
       };
 
       document.getElementById('restoreBackupInput').addEventListener('change', e => {
+        if (!requireCloudConnected('restore a backup')) {
+          e.target.value = '';
+          return;
+        }
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = ev => {
           try {
             const data = JSON.parse(ev.target.result);
-            if (Array.isArray(data.decks) && data.decks.length) {
+            if (Array.isArray(data.decks)) {
               state.folders = Array.isArray(data.folders) ? data.folders : [];
               state.decks = sanitizeDeckList(data.decks);
               applyDeckSortOrder(state.deckSortMode);
-              state.activeDeckId = state.decks[0].id;
+              state.activeDeckId = state.decks[0]?.id || '';
               resetSessionPointers();
               saveState();
               renderAll();
               closeModal('syncModal');
-              showToast('Backup restored!');
+              showToast('Backup restored and synced to Firebase!');
             }
           } catch (err) { alert('Invalid backup JSON file.'); }
         };
@@ -3245,6 +3761,7 @@
 
       document.addEventListener('keydown', e => {
         if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+        if (!isCloudConnected()) return;
         if (state.mode === 'flashcards') {
           if (e.code === 'Space' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
             e.preventDefault();
