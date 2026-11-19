@@ -60,8 +60,8 @@
       <div class="w-14 h-14 mx-auto rounded-2xl bg-indigo-600 flex items-center justify-center">
         <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
       </div>
-      <p class="text-lg font-bold">Drop .json File to Auto-Import</p>
-      <p class="text-xs text-indigo-200">Automatically creates a new question set named after your file</p>
+      <p class="text-lg font-bold">Drop .json File to Import</p>
+      <p class="text-xs text-indigo-200">Choose whether to add as a new deck or import into an existing deck</p>
     </div>
   </div>
 
@@ -581,13 +581,14 @@
     <div id="bulkModalCard" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-2xl w-full max-h-[90dvh] flex flex-col shadow-2xl transition">
       <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
         <div>
-          <h3 class="text-base sm:text-lg font-bold">Import JSON Question Set</h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Choose a .json file from your phone/iPad or paste JSON below</p>
+          <h3 class="text-base sm:text-lg font-bold">Import JSON Questions</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Choose whether to add as a new deck or append to an existing deck</p>
         </div>
         <button onclick="closeModal('bulkModal')" class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-lg leading-none">&times;</button>
       </div>
 
       <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
+        <!-- File Picker & Schema Tools -->
         <div class="flex flex-wrap items-center gap-2">
           <label class="cursor-pointer px-3.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
@@ -602,33 +603,66 @@
           </button>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold mb-1">Destination Mode</label>
-            <select id="bulkDeckSelect" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"></select>
+        <!-- Loaded File Banner (Shown when a .json file is selected or dropped) -->
+        <div id="bulkLoadedFileBanner" class="hidden px-3.5 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/80 flex items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-2 min-w-0 font-semibold text-indigo-800 dark:text-indigo-200">
+            <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span id="bulkLoadedFileName" class="truncate">file.json</span>
           </div>
-          <div id="bulkFolderWrap">
-            <label class="block text-xs font-semibold mb-1">Assign to Folder (Optional)</label>
-            <select id="bulkFolderSelect" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"></select>
+          <span class="text-[11px] text-indigo-600 dark:text-indigo-300 font-bold shrink-0">Ready to Import</span>
+        </div>
+
+        <!-- Prominent Destination Prompt: Add as New Deck vs Import to Existing Deck -->
+        <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-3">
+          <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Where would you like to import these questions?</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button id="bulkModeNewBtn" type="button" class="px-3.5 py-2.5 rounded-xl border-2 text-left transition flex items-center gap-2.5 border-indigo-600 bg-indigo-50/80 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-200">
+              <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shrink-0">+</span>
+              <div class="min-w-0">
+                <p class="text-xs font-bold leading-tight">Add as a New Deck</p>
+                <p class="text-[11px] opacity-80 truncate">Creates a separate question set</p>
+              </div>
+            </button>
+            <button id="bulkModeExistingBtn" type="button" class="px-3.5 py-2.5 rounded-xl border-2 text-left transition flex items-center gap-2.5 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-indigo-400">
+              <span class="w-6 h-6 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs font-bold shrink-0">&#8627;</span>
+              <div class="min-w-0">
+                <p class="text-xs font-bold leading-tight">Import to Existing Deck</p>
+                <p id="bulkExistingSubtext" class="text-[11px] opacity-80 truncate">Appends to a deck you already have</p>
+              </div>
+            </button>
           </div>
-          <div id="bulkNewDeckWrap" class="sm:col-span-2">
-            <label class="block text-xs font-semibold mb-1">New Question Set Name (Auto-filled from JSON filename)</label>
-            <input id="bulkNewDeckName" type="text" placeholder="e.g., Differential Calculus 1 Quiz" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium" />
+
+          <!-- New Deck Options -->
+          <div id="bulkNewDeckFields" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div>
+              <label class="block text-xs font-semibold mb-1">New Deck Name</label>
+              <input id="bulkNewDeckName" type="text" placeholder="e.g., Differential Calculus 1 Quiz" class="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-medium" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1">Assign to Folder (Optional)</label>
+              <select id="bulkFolderSelect" class="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm"></select>
+            </div>
+          </div>
+
+          <!-- Existing Deck Selector -->
+          <div id="bulkExistingDeckFields" class="hidden pt-1">
+            <label class="block text-xs font-semibold mb-1">Select Existing Deck to Import Into</label>
+            <select id="bulkExistingDeckSelect" class="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-medium"></select>
           </div>
         </div>
 
         <div>
-          <textarea id="bulkJsonInput" rows="7" placeholder='Choose a .json file above or paste valid JSON here...' class="w-full p-3 rounded-xl bg-slate-950 text-emerald-300 font-mono text-xs border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+          <textarea id="bulkJsonInput" rows="6" placeholder='Choose a .json file above or paste valid JSON here...' class="w-full p-3 rounded-xl bg-slate-950 text-emerald-300 font-mono text-xs border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
         </div>
 
         <div id="bulkValidationStatus" class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300">
-          Choose a .json file or paste valid JSON above to create a new question set.
+          Choose a .json file or paste valid JSON above, then pick whether to add as a new deck or import into an existing deck.
         </div>
       </div>
 
       <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
         <button onclick="closeModal('bulkModal')" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold">Cancel</button>
-        <button id="confirmBulkImportBtn" disabled class="px-4 py-2.5 rounded-xl bg-indigo-600 disabled:opacity-40 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold transition">Add Question Set</button>
+        <button id="confirmBulkImportBtn" disabled class="px-4 py-2.5 rounded-xl bg-indigo-600 disabled:opacity-40 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold transition">Add as New Deck</button>
       </div>
     </div>
   </div>
@@ -826,6 +860,7 @@
     let draggedDeckId = null;
     let fileDragDepth = 0;
     let quizSetupMode = 'set';
+    let bulkImportDestination = 'new';
     let lastQuizConfig = null;
     let lastQuizReportData = null;
     let aiChatHistory = [];
@@ -1770,7 +1805,7 @@
         if (e.target.dataset.delDeck) {
           e.stopPropagation();
           if (confirm('Delete question set "' + deck.title + '"?')) {
-            state.decks = state.decks.filter(d => d.id !== deck.id);
+            state.decks = state.decks = state.decks.filter(d => d.id !== deck.id);
             if (state.activeDeckId === deck.id) {
               state.activeDeckId = state.decks[0]?.id || '';
             }
@@ -2836,6 +2871,46 @@
     let validatedImportCards = [];
     let detectedJsonTitle = '';
 
+    function setBulkImportDestination(mode) {
+      if (mode === 'existing' && state.decks.length === 0) {
+        showToast('No existing decks yet — create a new deck first.', true);
+        mode = 'new';
+      }
+      bulkImportDestination = mode;
+      const isNew = mode === 'new';
+
+      const newBtn = document.getElementById('bulkModeNewBtn');
+      const existBtn = document.getElementById('bulkModeExistingBtn');
+      const activeClasses = 'px-3.5 py-2.5 rounded-xl border-2 text-left transition flex items-center gap-2.5 border-indigo-600 bg-indigo-50/80 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-200';
+      const inactiveClasses = 'px-3.5 py-2.5 rounded-xl border-2 text-left transition flex items-center gap-2.5 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-indigo-400';
+
+      newBtn.className = isNew ? activeClasses : inactiveClasses;
+      existBtn.className = !isNew
+        ? activeClasses
+        : (state.decks.length === 0
+            ? 'px-3.5 py-2.5 rounded-xl border-2 text-left transition flex items-center gap-2.5 border-slate-200 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-900/40 text-slate-400 opacity-60 cursor-not-allowed'
+            : inactiveClasses);
+
+      const newBadge = newBtn.querySelector('span');
+      const existBadge = existBtn.querySelector('span');
+      if (newBadge) {
+        newBadge.className = isNew
+          ? 'w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shrink-0'
+          : 'w-6 h-6 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs font-bold shrink-0';
+      }
+      if (existBadge) {
+        existBadge.className = !isNew
+          ? 'w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shrink-0'
+          : 'w-6 h-6 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs font-bold shrink-0';
+      }
+
+      document.getElementById('bulkNewDeckFields').classList.toggle('hidden', !isNew);
+      document.getElementById('bulkExistingDeckFields').classList.toggle('hidden', isNew);
+      document.getElementById('confirmBulkImportBtn').textContent = isNew
+        ? 'Add as New Deck'
+        : 'Import to Existing Deck';
+    }
+
     function parseBulkJson(rawText) {
       const trimmed = rawText.trim();
       if (!trimmed) return { cards: [], title: '', error: null, isEmpty: true };
@@ -2956,7 +3031,7 @@
         detectedJsonTitle = '';
         btn.disabled = true;
         box.className = 'p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300';
-        box.textContent = 'Choose a .json file or paste valid JSON above to create a new question set.';
+        box.textContent = 'Choose a .json file or paste valid JSON above, then pick whether to add as a new deck or import into an existing deck.';
         return;
       }
 
@@ -2975,16 +3050,16 @@
       }
       btn.disabled = false;
       box.className = 'p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold text-emerald-700 dark:text-emerald-300';
-      box.textContent = `Valid JSON: ${res.cards.length} question(s) ready to add as a new set!`;
+      box.textContent = `Valid JSON: ${res.cards.length} question(s) ready! Choose "Add as a New Deck" or "Import to Existing Deck" above.`;
     }
 
     function executeBulkImport() {
       if (!requireCloudConnected('import JSON questions')) return false;
       if (!validatedImportCards.length) return false;
-      let targetId = document.getElementById('bulkDeckSelect').value;
+      let targetId = '';
       let startIndex = 0;
 
-      if (targetId === '__new__') {
+      if (bulkImportDestination === 'new') {
         const newTitle = document.getElementById('bulkNewDeckName').value.trim()
           || detectedJsonTitle
           || ('Question Set ' + (state.decks.length + 1));
@@ -2999,8 +3074,13 @@
           cards: []
         });
       } else {
+        targetId = document.getElementById('bulkExistingDeckSelect').value;
         const existingDeck = state.decks.find(d => d.id === targetId);
-        if (existingDeck) startIndex = existingDeck.cards.length;
+        if (!existingDeck) {
+          showToast('Please select an existing deck to import into.', true);
+          return false;
+        }
+        startIndex = existingDeck.cards.length;
       }
 
       const deck = state.decks.find(d => d.id === targetId);
@@ -3012,17 +3092,23 @@
       state.mode = 'mcq';
       document.getElementById('bulkJsonInput').value = '';
       document.getElementById('bulkNewDeckName').value = '';
+      document.getElementById('bulkLoadedFileBanner').classList.add('hidden');
       validatedImportCards = [];
       detectedJsonTitle = '';
       closeModal('bulkModal');
       resetSessionPointers(startIndex);
       saveState();
       renderAll();
-      showToast(`Added "${deck.title}" (${importedCount} questions)!`);
+
+      if (bulkImportDestination === 'new') {
+        showToast(`Added new deck "${deck.title}" (${importedCount} questions)!`);
+      } else {
+        showToast(`Imported ${importedCount} question(s) into "${deck.title}"!`);
+      }
       return true;
     }
 
-    function handleDroppedOrSelectedJsonFile(file, autoSubmit = true) {
+    function handleDroppedOrSelectedJsonFile(file) {
       if (!requireCloudConnected('import JSON files')) return;
       if (!file) return;
       if (!file.name.toLowerCase().endsWith('.json') && file.type !== 'application/json') {
@@ -3036,18 +3122,15 @@
       }
 
       const cleanName = formatFilenameToTitle(file.name);
-      document.getElementById('bulkDeckSelect').value = '__new__';
-      document.getElementById('bulkNewDeckWrap').classList.remove('hidden');
-      document.getElementById('bulkFolderWrap').classList.remove('hidden');
       document.getElementById('bulkNewDeckName').value = cleanName;
+      document.getElementById('bulkLoadedFileName').textContent = file.name;
+      document.getElementById('bulkLoadedFileBanner').classList.remove('hidden');
 
       const reader = new FileReader();
       reader.onload = ev => {
         document.getElementById('bulkJsonInput').value = ev.target.result;
         updateBulkValidationUI();
-        if (autoSubmit && validatedImportCards.length > 0) {
-          executeBulkImport();
-        } else if (autoSubmit) {
+        if (validatedImportCards.length === 0) {
           showToast('JSON file has an error — check the highlighted message.', true);
         }
       };
@@ -3056,22 +3139,29 @@
 
     function openBulkModal() {
       if (!requireCloudConnected('import JSON questions')) return;
-      const select = document.getElementById('bulkDeckSelect');
-      select.innerHTML = '';
 
-      const newOpt = document.createElement('option');
-      newOpt.value = '__new__';
-      newOpt.textContent = '+ Create New Question Set (From JSON Name)';
-      newOpt.selected = true;
-      select.appendChild(newOpt);
+      const existingSelect = document.getElementById('bulkExistingDeckSelect');
+      existingSelect.innerHTML = '';
 
-      state.decks.forEach(d => {
-        const folder = state.folders.find(f => f.id === d.folderId);
+      if (state.decks.length === 0) {
         const opt = document.createElement('option');
-        opt.value = d.id;
-        opt.textContent = folder ? `Append to: [${folder.name}] ${d.title}` : `Append to: ${d.title}`;
-        select.appendChild(opt);
-      });
+        opt.value = '';
+        opt.textContent = 'No existing decks available';
+        existingSelect.appendChild(opt);
+        document.getElementById('bulkExistingSubtext').textContent = 'No existing decks yet';
+      } else {
+        document.getElementById('bulkExistingSubtext').textContent = 'Appends to a deck you already have';
+        state.decks.forEach(d => {
+          const folder = state.folders.find(f => f.id === d.folderId);
+          const opt = document.createElement('option');
+          opt.value = d.id;
+          opt.textContent = folder
+            ? `[${folder.name}] ${d.title} (${d.cards.length} cards)`
+            : `${d.title} (${d.cards.length} cards)`;
+          if (d.id === state.activeDeckId) opt.selected = true;
+          existingSelect.appendChild(opt);
+        });
+      }
 
       const folderSel = document.getElementById('bulkFolderSelect');
       folderSel.innerHTML = '<option value="">No Folder (Unfiled)</option>';
@@ -3082,9 +3172,9 @@
         folderSel.appendChild(opt);
       });
 
+      document.getElementById('bulkLoadedFileBanner').classList.add('hidden');
       document.getElementById('bulkNewDeckName').value = '';
-      document.getElementById('bulkNewDeckWrap').classList.remove('hidden');
-      document.getElementById('bulkFolderWrap').classList.remove('hidden');
+      setBulkImportDestination('new');
       updateBulkValidationUI();
       openModal('bulkModal');
     }
@@ -3153,7 +3243,7 @@
         await pullFromCloud(true);
       }
 
-      // Global Drag-and-Drop .json File Auto-Upload
+      // Global Drag-and-Drop .json File Import (Prompts New vs Existing Deck)
       const dropOverlay = document.getElementById('globalFileDropOverlay');
       const isExternalFileDrag = (e) => {
         if (draggedDeckId) return false;
@@ -3192,7 +3282,7 @@
         dropOverlay.classList.remove('flex');
         const files = e.dataTransfer && e.dataTransfer.files;
         if (files && files.length > 0) {
-          handleDroppedOrSelectedJsonFile(files[0], true);
+          handleDroppedOrSelectedJsonFile(files[0]);
         }
       });
 
@@ -3528,17 +3618,14 @@
       document.getElementById('openBulkBtnSide').onclick = openBulkModal;
       document.getElementById('openBulkBtnMain').onclick = openBulkModal;
 
-      document.getElementById('bulkDeckSelect').onchange = e => {
-        const isNew = e.target.value === '__new__';
-        document.getElementById('bulkNewDeckWrap').classList.toggle('hidden', !isNew);
-        document.getElementById('bulkFolderWrap').classList.toggle('hidden', !isNew);
-      };
+      document.getElementById('bulkModeNewBtn').onclick = () => setBulkImportDestination('new');
+      document.getElementById('bulkModeExistingBtn').onclick = () => setBulkImportDestination('existing');
 
       document.getElementById('bulkJsonInput').addEventListener('input', updateBulkValidationUI);
 
       document.getElementById('bulkJsonFileInput').addEventListener('change', e => {
         const file = e.target.files[0];
-        if (file) handleDroppedOrSelectedJsonFile(file, false);
+        if (file) handleDroppedOrSelectedJsonFile(file);
         e.target.value = '';
       });
 
