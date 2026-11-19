@@ -31,6 +31,8 @@
     .flip-face { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
     .rotate-y-180 { transform: rotateY(180deg); }
     .drop-target-active { outline: 2px dashed #6366f1; background-color: rgba(99, 102, 241, 0.12) !important; }
+    .drop-insert-before { box-shadow: 0 -2.5px 0 0 #6366f1; }
+    .drop-insert-after { box-shadow: 0 2.5px 0 0 #6366f1; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .safe-bottom-nav { padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -131,13 +133,24 @@
             <button id="closeSidebarMobileBtn" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-base leading-none font-bold" title="Close Menu">&times;</button>
           </div>
         </div>
+
+        <!-- Sort / Order Selector -->
+        <div class="flex items-center justify-between gap-2 pt-0.5">
+          <label for="sidebarSortSelect" class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 shrink-0">Set Order:</label>
+          <select id="sidebarSortSelect" class="flex-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="manual">Manual (Drag &amp; Drop)</option>
+            <option value="az">Name (A &rarr; Z)</option>
+            <option value="za">Name (Z &rarr; A)</option>
+          </select>
+        </div>
+
         <!-- Mobile/iPad Streak Pill -->
         <div class="flex md:hidden items-center justify-between px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200/70 dark:border-amber-800/50 text-xs font-semibold text-amber-700 dark:text-amber-300">
           <span>Streak: <span id="streakCountMobile">1</span>d</span>
           <span class="text-emerald-600 dark:text-emerald-400"><span id="todayCountMobile">0</span> answered today</span>
         </div>
-        <p class="hidden lg:block text-[10px] text-slate-400">Tip: Drag a deck onto a folder, or drop a .json file anywhere.</p>
-        <p class="lg:hidden text-[11px] text-slate-400">Tap a set to open, or tap the folder icon on any set to move it.</p>
+        <p class="hidden lg:block text-[10px] text-slate-400">Drag sets to reorder inside/outside folders, or drop a .json file anywhere.</p>
+        <p class="lg:hidden text-[11px] text-slate-400">Tap a set to open, or tap the folder icon on any set to move/reorder it.</p>
       </div>
 
       <div id="deckList" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
@@ -380,7 +393,7 @@
             </div>
           </div>
 
-          <!-- Quick Command Chips (Horizontal scroll on mobile, wrapped on tablet/desktop) -->
+          <!-- Quick Command Chips -->
           <div class="flex sm:flex-wrap gap-1.5 text-[11px] overflow-x-auto no-scrollbar pb-0.5">
             <button type="button" data-ai-prompt="Explain the solution to this question step by step and why the other choices are wrong." class="ai-quick-chip shrink-0 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-violet-100 dark:bg-slate-800 dark:hover:bg-violet-950 text-slate-700 dark:text-slate-300 font-medium transition">
               Explain current question
@@ -710,15 +723,36 @@
     </div>
   </div>
 
-  <!-- MODAL 4: TOUCH-FRIENDLY MOVE DECK TO FOLDER -->
+  <!-- MODAL 4: TOUCH-FRIENDLY MOVE & REORDER DECK -->
   <div id="moveFolderModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-sm w-full max-h-[85dvh] overflow-y-auto p-5 space-y-3 shadow-2xl">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-sm w-full max-h-[85dvh] overflow-y-auto p-5 space-y-3.5 shadow-2xl">
       <div class="flex items-center justify-between">
-        <h3 class="font-bold text-base truncate pr-2">Move Question Set</h3>
+        <h3 class="font-bold text-base truncate pr-2">Organize Question Set</h3>
         <button onclick="closeModal('moveFolderModal')" class="p-1.5 text-slate-400 text-lg leading-none">&times;</button>
       </div>
-      <p id="moveFolderDeckLabel" class="text-xs text-slate-500 dark:text-slate-400 truncate"></p>
-      <div id="moveFolderChoicesList" class="space-y-1.5 pt-1"></div>
+      <p id="moveFolderDeckLabel" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 truncate"></p>
+
+      <!-- Manual Position Controls -->
+      <div class="space-y-1.5">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Position Order</p>
+        <div class="grid grid-cols-3 gap-1.5">
+          <button id="moveDeckTopBtn" type="button" class="px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition">
+            &uarr; Top (#1)
+          </button>
+          <button id="moveDeckUpBtn" type="button" class="px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition">
+            &uarr; Move Up
+          </button>
+          <button id="moveDeckDownBtn" type="button" class="px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition">
+            &darr; Move Down
+          </button>
+        </div>
+      </div>
+
+      <!-- Folder Assignment -->
+      <div class="space-y-1.5">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Move to Folder</p>
+        <div id="moveFolderChoicesList" class="space-y-1.5"></div>
+      </div>
     </div>
   </div>
 
@@ -776,10 +810,12 @@
     let lastQuizConfig = null;
     let lastQuizReportData = null;
     let aiChatHistory = [];
+    let organizingDeckId = null;
 
     let state = {
       folders: [],
       decks: [],
+      deckSortMode: 'manual',
       activeDeckId: '',
       mode: 'mcq',
       fcIndex: 0,
@@ -950,6 +986,75 @@
         }
       }
       return -1;
+    }
+
+    // =========================================================================
+    // SORTING & MANUAL REORDERING HELPERS
+    // =========================================================================
+    function applyDeckSortOrder(mode) {
+      if (mode === 'az') {
+        state.decks.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' }));
+      } else if (mode === 'za') {
+        state.decks.sort((a, b) => b.title.localeCompare(a.title, undefined, { numeric: true, sensitivity: 'base' }));
+      }
+    }
+
+    function clearDragIndicators() {
+      document.querySelectorAll('.drop-target-active').forEach(el => el.classList.remove('drop-target-active'));
+      document.querySelectorAll('.drop-insert-before').forEach(el => el.classList.remove('drop-insert-before'));
+      document.querySelectorAll('.drop-insert-after').forEach(el => el.classList.remove('drop-insert-after'));
+    }
+
+    function reorderDeckRelativeTo(sourceDeckId, targetDeckId, position = 'before') {
+      if (!sourceDeckId || !targetDeckId || sourceDeckId === targetDeckId) return;
+      const sourceIdx = state.decks.findIndex(d => d.id === sourceDeckId);
+      if (sourceIdx === -1) return;
+
+      const [movedDeck] = state.decks.splice(sourceIdx, 1);
+      const targetIdx = state.decks.findIndex(d => d.id === targetDeckId);
+      if (targetIdx === -1) {
+        state.decks.push(movedDeck);
+      } else {
+        const targetDeck = state.decks[targetIdx];
+        const targetFolderId = (targetDeck.folderId && state.folders.some(f => f.id === targetDeck.folderId))
+          ? targetDeck.folderId
+          : '';
+        movedDeck.folderId = targetFolderId;
+        if (targetFolderId) {
+          const folder = state.folders.find(f => f.id === targetFolderId);
+          if (folder) folder.collapsed = false;
+        }
+        const insertAt = position === 'before' ? targetIdx : targetIdx + 1;
+        state.decks.splice(insertAt, 0, movedDeck);
+      }
+
+      state.deckSortMode = 'manual';
+      saveState();
+      renderAll();
+      showToast(`Moved "${movedDeck.title}"`);
+    }
+
+    function moveDeckWithinGroup(deckId, direction) {
+      const deck = state.decks.find(d => d.id === deckId);
+      if (!deck) return;
+      const normFolder = (deck.folderId && state.folders.some(f => f.id === deck.folderId)) ? deck.folderId : '';
+      const groupDecks = state.decks.filter(d => {
+        const df = (d.folderId && state.folders.some(f => f.id === d.folderId)) ? d.folderId : '';
+        return df === normFolder;
+      });
+      const pos = groupDecks.findIndex(d => d.id === deckId);
+      if (pos === -1) return;
+
+      if (direction === 'top') {
+        if (pos === 0) return;
+        reorderDeckRelativeTo(deckId, groupDecks[0].id, 'before');
+      } else if (direction === 'up') {
+        if (pos === 0) return;
+        reorderDeckRelativeTo(deckId, groupDecks[pos - 1].id, 'before');
+      } else if (direction === 'down') {
+        if (pos >= groupDecks.length - 1) return;
+        reorderDeckRelativeTo(deckId, groupDecks[pos + 1].id, 'after');
+      }
     }
 
     // =========================================================================
@@ -1208,6 +1313,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             updatedAt: Date.now(),
+            deckSortMode: state.deckSortMode,
             folders: state.folders,
             decks: state.decks
           })
@@ -1233,12 +1339,15 @@
         if (data && Array.isArray(data.decks) && data.decks.length > 0) {
           state.folders = Array.isArray(data.folders) ? data.folders : [];
           state.decks = sanitizeDeckList(data.decks);
+          state.deckSortMode = ['manual', 'az', 'za'].includes(data.deckSortMode) ? data.deckSortMode : 'manual';
+          applyDeckSortOrder(state.deckSortMode);
           if (!state.decks.some(d => d.id === state.activeDeckId)) {
             state.activeDeckId = state.decks[0].id;
           }
           localStorage.setItem(STORAGE_KEY, JSON.stringify({
             folders: state.folders,
             decks: state.decks,
+            deckSortMode: state.deckSortMode,
             activeDeckId: state.activeDeckId,
             todayCount: state.todayCount,
             streak: state.streak,
@@ -1273,6 +1382,8 @@
           if (Array.isArray(saved.decks) && saved.decks.length > 0) {
             state.folders = Array.isArray(saved.folders) ? saved.folders : [];
             state.decks = sanitizeDeckList(saved.decks);
+            state.deckSortMode = ['manual', 'az', 'za'].includes(saved.deckSortMode) ? saved.deckSortMode : 'manual';
+            applyDeckSortOrder(state.deckSortMode);
             state.activeDeckId = saved.activeDeckId || saved.decks[0].id;
             state.todayCount = saved.todayCount || 0;
             state.streak = saved.streak || 1;
@@ -1283,6 +1394,7 @@
       } catch (e) {}
       state.folders = [];
       state.decks = JSON.parse(JSON.stringify(DEFAULT_DECKS));
+      state.deckSortMode = 'manual';
       state.activeDeckId = state.decks[0].id;
     }
 
@@ -1291,6 +1403,7 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           folders: state.folders,
           decks: state.decks,
+          deckSortMode: state.deckSortMode,
           activeDeckId: state.activeDeckId,
           todayCount: state.todayCount,
           streak: state.streak,
@@ -1321,8 +1434,9 @@
           showToast(`Moved "${deck.title}" into "${targetFolder.name}"`);
         }
       } else {
-        showToast(`Moved "${deck.title}" to Unfiled`);
+        showToast(`Moved "${deck.title}" outside folders`);
       }
+      applyDeckSortOrder(state.deckSortMode);
       saveState();
       renderAll();
     }
@@ -1330,11 +1444,12 @@
     function openMoveFolderModal(deckId) {
       const deck = state.decks.find(d => d.id === deckId);
       if (!deck) return;
+      organizingDeckId = deck.id;
       document.getElementById('moveFolderDeckLabel').textContent = `Set: "${deck.title}"`;
       const list = document.getElementById('moveFolderChoicesList');
       list.innerHTML = '';
 
-      const options = [{ id: '', name: 'No Folder (Unfiled)' }, ...state.folders];
+      const options = [{ id: '', name: 'No Folder (Outside / Unfiled)' }, ...state.folders];
       options.forEach(opt => {
         const isCurrent = (deck.folderId || '') === opt.id;
         const btn = document.createElement('button');
@@ -1362,6 +1477,7 @@
 
       const row = document.createElement('div');
       row.draggable = true;
+      row.dataset.deckId = deck.id;
       row.className = 'group flex items-center justify-between p-2.5 lg:p-2 rounded-xl cursor-pointer lg:cursor-grab lg:active:cursor-grabbing transition ' +
         (isActive
           ? 'bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 font-semibold'
@@ -1369,7 +1485,7 @@
 
       row.innerHTML = `
         <div class="min-w-0 flex-1 pr-1 flex items-center gap-1.5">
-          <svg class="hidden lg:block w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-slate-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z"/></svg>
+          <svg class="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-400 shrink-0" fill="currentColor" viewBox="0 0 20 20" title="Drag to reorder"><path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z"/></svg>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-1.5">
               <span class="w-2 h-2 rounded-full shrink-0" style="background:${deck.color || '#4f46e5'}"></span>
@@ -1379,7 +1495,7 @@
           </div>
         </div>
         <div class="flex items-center gap-0.5 shrink-0">
-          ${state.folders.length > 0 ? `<button data-move-deck="${deck.id}" class="p-1.5 text-slate-400 hover:text-indigo-600 text-xs" title="Move to Folder">&#128193;</button>` : ''}
+          <button data-move-deck="${deck.id}" class="p-1.5 text-slate-400 hover:text-indigo-600 text-xs" title="Move or Reorder Set">&#128193;</button>
           ${state.decks.length > 1 ? `<button data-del-deck="${deck.id}" class="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 p-1.5 text-slate-400 hover:text-rose-500 text-sm leading-none" title="Delete Question Set">&times;</button>` : ''}
         </div>
       `;
@@ -1393,10 +1509,42 @@
         }
       });
 
+      row.addEventListener('dragover', (e) => {
+        if (!draggedDeckId || draggedDeckId === deck.id) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+
+        const rect = row.getBoundingClientRect();
+        const isBefore = e.clientY < rect.top + rect.height / 2;
+        row.dataset.dropPos = isBefore ? 'before' : 'after';
+
+        clearDragIndicators();
+        row.classList.add(isBefore ? 'drop-insert-before' : 'drop-insert-after');
+      });
+
+      row.addEventListener('dragleave', (e) => {
+        if (!row.contains(e.relatedTarget)) {
+          row.classList.remove('drop-insert-before', 'drop-insert-after');
+          delete row.dataset.dropPos;
+        }
+      });
+
+      row.addEventListener('drop', (e) => {
+        if (!draggedDeckId || draggedDeckId === deck.id) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const pos = row.dataset.dropPos || 'before';
+        const srcId = draggedDeckId;
+        draggedDeckId = null;
+        clearDragIndicators();
+        reorderDeckRelativeTo(srcId, deck.id, pos);
+      });
+
       row.addEventListener('dragend', () => {
         draggedDeckId = null;
         row.classList.remove('opacity-50');
-        document.querySelectorAll('.drop-target-active').forEach(el => el.classList.remove('drop-target-active'));
+        clearDragIndicators();
       });
 
       row.addEventListener('click', (e) => {
@@ -1431,6 +1579,7 @@
         if (!draggedDeckId) return;
         e.preventDefault();
         if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+        clearDragIndicators();
         el.classList.add('drop-target-active');
       });
       el.addEventListener('dragleave', (e) => {
@@ -1441,13 +1590,20 @@
       el.addEventListener('drop', (e) => {
         if (!draggedDeckId) return;
         e.preventDefault();
-        el.classList.remove('drop-target-active');
+        clearDragIndicators();
         const id = draggedDeckId || (e.dataTransfer && e.dataTransfer.getData('text/plain'));
-        if (id) moveDeckToFolder(id, folderId);
+        draggedDeckId = null;
+        if (id) {
+          state.deckSortMode = 'manual';
+          moveDeckToFolder(id, folderId);
+        }
       });
     }
 
     function renderSidebar() {
+      const sortSel = document.getElementById('sidebarSortSelect');
+      if (sortSel) sortSel.value = state.deckSortMode;
+
       const list = document.getElementById('deckList');
       list.innerHTML = '';
       let totalCards = 0;
@@ -1525,7 +1681,7 @@
           const body = document.createElement('div');
           body.className = 'px-2 pb-2 pt-0.5 space-y-1 border-t border-slate-200/50 dark:border-slate-800/70';
           if (folderDecks.length === 0) {
-            body.innerHTML = `<p class="text-[11px] text-slate-400 py-1.5 px-2 italic">No question sets in this folder yet</p>`;
+            body.innerHTML = `<p class="text-[11px] text-slate-400 py-1.5 px-2 italic">Drop a question set here</p>`;
           } else {
             folderDecks.forEach(d => body.appendChild(createDeckRowEl(d)));
           }
@@ -1537,16 +1693,23 @@
 
       const unfiledDecks = state.decks.filter(d => !d.folderId || !state.folders.some(f => f.id === d.folderId));
       const unfiledZone = document.createElement('div');
-      unfiledZone.className = 'rounded-xl p-1 space-y-1 transition min-h-[44px]';
+      unfiledZone.className = 'rounded-xl p-1.5 space-y-1 transition min-h-[52px]';
       attachFolderDropEvents(unfiledZone, '');
 
       if (state.folders.length > 0) {
         const lbl = document.createElement('p');
         lbl.className = 'text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 pt-1';
-        lbl.textContent = 'Unfiled Question Sets';
+        lbl.textContent = 'Outside Folders (Unfiled)';
         unfiledZone.appendChild(lbl);
       }
-      unfiledDecks.forEach(d => unfiledZone.appendChild(createDeckRowEl(d)));
+      if (unfiledDecks.length === 0 && state.folders.length > 0) {
+        const emptyHint = document.createElement('p');
+        emptyHint.className = 'text-[11px] text-slate-400 py-1.5 px-2 italic';
+        emptyHint.textContent = 'Drag a set here to place outside folders';
+        unfiledZone.appendChild(emptyHint);
+      } else {
+        unfiledDecks.forEach(d => unfiledZone.appendChild(createDeckRowEl(d)));
+      }
       list.appendChild(unfiledZone);
 
       document.getElementById('globalMasteryText').textContent = `${totalMastered} / ${totalCards} Mastered`;
@@ -1570,6 +1733,7 @@
         color: colors[state.decks.length % colors.length],
         cards: []
       });
+      applyDeckSortOrder(state.deckSortMode);
       state.activeDeckId = id;
       resetSessionPointers();
       saveState();
@@ -2443,6 +2607,7 @@
       const deck = state.decks.find(d => d.id === targetId);
       const importedCount = validatedImportCards.length;
       deck.cards.push(...validatedImportCards);
+      applyDeckSortOrder(state.deckSortMode);
 
       state.activeDeckId = targetId;
       state.mode = 'mcq';
@@ -2644,6 +2809,23 @@
       document.getElementById('closeSidebarMobileBtn').onclick = closeMobileSidebar;
       document.getElementById('sidebarBackdrop').onclick = closeMobileSidebar;
 
+      document.getElementById('sidebarSortSelect').onchange = (e) => {
+        state.deckSortMode = e.target.value;
+        applyDeckSortOrder(state.deckSortMode);
+        saveState();
+        renderAll();
+      };
+
+      document.getElementById('moveDeckTopBtn').onclick = () => {
+        if (organizingDeckId) moveDeckWithinGroup(organizingDeckId, 'top');
+      };
+      document.getElementById('moveDeckUpBtn').onclick = () => {
+        if (organizingDeckId) moveDeckWithinGroup(organizingDeckId, 'up');
+      };
+      document.getElementById('moveDeckDownBtn').onclick = () => {
+        if (organizingDeckId) moveDeckWithinGroup(organizingDeckId, 'down');
+      };
+
       document.getElementById('themeToggleBtn').onclick = () => {
         state.darkMode = !state.darkMode;
         saveState(false);
@@ -2673,6 +2855,7 @@
         const name = prompt('Rename question set:', deck.title);
         if (name && name.trim()) {
           deck.title = name.trim();
+          applyDeckSortOrder(state.deckSortMode);
           saveState();
           renderAll();
         }
@@ -3046,6 +3229,7 @@
             if (Array.isArray(data.decks) && data.decks.length) {
               state.folders = Array.isArray(data.folders) ? data.folders : [];
               state.decks = sanitizeDeckList(data.decks);
+              applyDeckSortOrder(state.deckSortMode);
               state.activeDeckId = state.decks[0].id;
               resetSessionPointers();
               saveState();
