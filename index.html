@@ -353,7 +353,7 @@
               <button id="toggleAiChatBtn" class="px-2.5 py-1 rounded-md bg-violet-100 hover:bg-violet-200 dark:bg-violet-950 dark:hover:bg-violet-900 border border-violet-300 dark:border-violet-700 text-violet-800 dark:text-violet-200 font-bold inline-flex items-center gap-1 transition" title="Chat with AI to ask questions or temporarily edit the whole set">
                 <span>AI Assistant</span>
               </button>
-              <button id="mcqFlagBtn" class="hidden px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 text-slate-500 hover:text-amber-600">Flag</button>
+              <button id="mcqFlagBtn" type="button" class="px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-amber-400 hover:text-amber-600 font-semibold transition" title="Mark this question number with an upper-right corner triangle to easily jump back to it">Note</button>
             </div>
           </div>
 
@@ -2540,7 +2540,6 @@
 
       document.getElementById('quizSetupControls').classList.toggle('hidden', isPractice || state.quizActive);
       document.getElementById('quizLiveStatus').classList.toggle('hidden', isPractice || !state.quizActive);
-      document.getElementById('mcqFlagBtn').classList.toggle('hidden', isPractice || !state.quizActive);
       document.getElementById('mcqRandomJumpBtn').classList.toggle('hidden', !isPractice || state.mcqItems.length < 2);
 
       if (isPractice && (!deck || !deck.cards.length) && !state.tempAiSetActive) {
@@ -2645,10 +2644,13 @@
 
       document.getElementById('quizScopePill').textContent = state.quizLabel;
 
-      const flagBtn = document.getElementById('mcqFlagBtn');
-      flagBtn.textContent = state.mcqFlags[item.key] ? 'Flagged' : 'Flag';
-      flagBtn.className = 'px-2.5 py-1 rounded border text-xs font-semibold ' +
-        (state.mcqFlags[item.key] ? 'border-amber-400 bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300' : 'border-slate-300 dark:border-slate-700 text-slate-500');
+      const noteBtn = document.getElementById('mcqFlagBtn');
+      const isNoted = !!state.mcqFlags[item.key];
+      noteBtn.textContent = isNoted ? 'Noted' : 'Note';
+      noteBtn.className = 'px-2.5 py-1 rounded border text-xs font-semibold transition ' +
+        (isNoted
+          ? 'border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950/80 dark:border-amber-500 dark:text-amber-300'
+          : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-amber-400 hover:text-amber-600');
 
       const list = document.getElementById('mcqChoicesList');
       list.innerHTML = '';
@@ -2707,7 +2709,7 @@
         b.type = 'button';
         const userAns = state.mcqAnswers[navItem.key];
         const answered = userAns !== undefined;
-        const flagged = !!state.mcqFlags[navItem.key];
+        const noted = !!state.mcqFlags[navItem.key];
         const current = pos === state.mcqIndex;
 
         let statusStyle = '';
@@ -2728,10 +2730,7 @@
             statusHint = 'Unanswered';
           }
         } else {
-          if (flagged) {
-            statusStyle = 'bg-amber-100 border-amber-400 text-amber-800 dark:bg-amber-950 dark:text-amber-200';
-            statusHint = 'Flagged';
-          } else if (answered) {
+          if (answered) {
             statusStyle = 'bg-indigo-600 border-indigo-600 text-white';
             statusHint = 'Answered';
           } else {
@@ -2740,10 +2739,22 @@
           }
         }
 
-        b.className = 'w-9 h-9 rounded-lg text-xs font-bold border transition ' +
+        if (noted) {
+          statusHint += ' • Noted';
+        }
+
+        b.className = 'w-9 h-9 rounded-lg text-xs font-bold border relative overflow-hidden flex items-center justify-center transition ' +
           (current ? 'ring-2 ring-indigo-500 ring-offset-1 dark:ring-offset-slate-900 ' : '') +
           statusStyle;
-        b.textContent = pos + 1;
+
+        const triangleColor = answered
+          ? 'border-t-amber-300'
+          : 'border-t-amber-500 dark:border-t-amber-400';
+
+        b.innerHTML = `<span>${pos + 1}</span>` +
+          (noted
+            ? `<span aria-hidden="true" class="pointer-events-none absolute top-0 right-0 w-0 h-0 border-t-[10px] ${triangleColor} border-l-[10px] border-l-transparent"></span>`
+            : '');
         b.title = `Question ${pos + 1} (${statusHint})`;
         b.onclick = () => { state.mcqIndex = pos; renderMcq(); };
         grid.appendChild(b);
